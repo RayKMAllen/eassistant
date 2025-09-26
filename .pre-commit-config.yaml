@@ -1,12 +1,11 @@
 repos:
-  - repo: https://github.com/psf/black
-    rev: 24.8.0
-    hooks: [{id: black}]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.6.8
-    hooks: [{id: ruff}, {id: ruff-format}]
+    hooks:
+      - id: ruff
+        args: ["--fix"]          # auto-fix safe lint issues (e.g., import sort)
+      - id: ruff-format          # formatter (replaces Black)
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.11.2
     hooks:
       - id: mypy
-        args: [src/assistant/, tests/]

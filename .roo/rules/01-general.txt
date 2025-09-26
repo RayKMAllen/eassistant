@@ -1,16 +1,12 @@
-# Roo Rules for the Conversational Email Assistant
-
-This project is guided by a detailed architectural plan. All development activities must align with this plan to ensure consistency and quality.
-
 ## 1. Architectural Adherence
 
 - All new code, including modules, classes, and functions, MUST align with the components, responsibilities, and folder structure defined in `docs/Architectural_Plan.md`.
 - Before implementing a feature, verify that your approach is consistent with the documented architecture.
+- refer also to guardrails.md
 
 ## 2. Task-Driven Development
 
 - All development work MUST be traceable to a specific task in the `project.todo.json` file.
-- Commit messages SHOULD reference the ID of the task they are addressing (e.g., `feat(M1.2): Implement parse_input node`).
 
 ## 3. Definition of Done
 
@@ -19,4 +15,8 @@ This project is guided by a detailed architectural plan. All development activit
 ## 4. Plan Before Code
 
 - If a proposed feature or change deviates from or is not covered by the `docs/Architectural_Plan.md`, the plan MUST be updated and reviewed before implementation begins.
-- This ensures the documentation remains the single source of truth for the project's design.
+
+## 5. Development Environment
+
+- The development environment is Windows. All shell commands MUST be compatible with Windows CMD or PowerShell.
+- chain commands using semicolons, e.g. "cmd1; cmd2; cmd3"

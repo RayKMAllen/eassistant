@@ -15,15 +15,22 @@ dependencies = [
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["eassistant"]
+
 [tool.black]
 line-length = 88
 
 [tool.ruff]
-select = ["E", "F", "W", "I"]
+lint.select = ["E", "F", "W", "I"]
 
 [tool.mypy]
 # By default, mypy is not strict
 strict = false
+files = [
+    "eassistant",
+    "tests"
+]
 # We enable strict checking for specific modules that are fully typed
 overrides = [
     { module = "eassistant.graph.state", strict = true },
