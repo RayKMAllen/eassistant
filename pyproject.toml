@@ -1,0 +1,30 @@
+[project]
+name = "eassistant"
+version = "0.1.0"
+description = "Conversational Email Assistant"
+authors = [{ name = "Roo", email = "roo@example.com" }]
+dependencies = [
+    "langgraph",
+    "pydantic",
+    "typer",
+    "rich",
+    "boto3",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+select = ["E", "F", "W", "I"]
+
+[tool.mypy]
+# By default, mypy is not strict
+strict = false
+# We enable strict checking for specific modules that are fully typed
+overrides = [
+    { module = "eassistant.graph.state", strict = true },
+]

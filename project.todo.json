@@ -1,0 +1,178 @@
+{
+  "id": "T0",
+  "name": "Conversational Email Assistant MVP",
+  "description": "Top-level project epic. This file tracks all tasks required to deliver the MVP.",
+  "definition_of_done": "All M0-M3 milestones are complete and their respective acceptance criteria are met.",
+  "tasks": [
+    {
+      "id": "M0",
+      "name": "Milestone 0: Bootstrap",
+      "dependencies": [],
+      "definition_of_done": "Project structure is in place, dependencies are defined, and a basic CLI shell with a 'hello world' graph can be executed.",
+      "tasks": [
+        {
+          "id": "M0.1",
+          "name": "Set up folder structure and git repository",
+          "dependencies": [],
+          "definition_of_done": "The folder structure as defined in the architectural plan exists and is checked into a git repository with a .gitignore file."
+        },
+        {
+          "id": "M0.2",
+          "name": "Define project dependencies in requirements.txt",
+          "dependencies": ["M0.1"],
+          "definition_of_done": "requirements.txt contains all necessary libraries (langgraph, pydantic, typer, rich, boto3, etc.)."
+        },
+        {
+          "id": "M0.3",
+          "name": "Implement basic Typer CLI shell",
+          "dependencies": ["M0.1"],
+          "definition_of_done": "A `shell.py` entry point exists that can be run to start an interactive loop that accepts user input."
+        },
+        {
+          "id": "M0.4",
+          "name": "Create 'hello world' LangGraph instance",
+          "dependencies": ["M0.1"],
+          "definition_of_done": "A simple graph with a start and end node is defined and can be invoked."
+        },
+        {
+          "id": "M0.5",
+          "name": "Integrate graph into CLI shell",
+          "dependencies": ["M0.3", "M0.4"],
+          "definition_of_done": "User input in the CLI is passed to the LangGraph instance and the result is printed to the console."
+        }
+      ]
+    },
+    {
+      "id": "M1",
+      "name": "Milestone 1: Core Pipeline (Text)",
+      "dependencies": ["M0"],
+      "definition_of_done": "The full pipeline from pasting plain text to generating a first draft is functional.",
+      "tasks": [
+        {
+          "id": "M1.1",
+          "name": "Define Pydantic models for GraphState",
+          "dependencies": [],
+          "definition_of_done": "The core `GraphState` class is defined in `eassistant/graph/state.py` with all required fields."
+        },
+        {
+          "id": "M1.2",
+          "name": "Implement `parse_input` node for plain text",
+          "dependencies": ["M1.1"],
+          "definition_of_done": "The node correctly takes user input and populates the `original_email` field in the state."
+        },
+        {
+          "id": "M1.3",
+          "name": "Implement LLM service for Bedrock Claude",
+          "dependencies": [],
+          "definition_of_done": "A service class in `eassistant/services/llm.py` can invoke a Claude model on Bedrock and return the response."
+        },
+        {
+          "id": "M1.4",
+          "name": "Implement `extract_and_summarize` node",
+          "dependencies": ["M1.1", "M1.3"],
+          "definition_of_done": "The node calls the LLM service and populates the `extracted_entities` and `summary` fields in the state."
+        },
+        {
+          "id": "M1.5",
+          "name": "Implement `generate_initial_draft` node",
+          "dependencies": ["M1.1", "M1.3", "M1.4"],
+          "definition_of_done": "The node uses the summary and entities to generate a draft and adds it to the `draft_history` in the state."
+        },
+        {
+          "id": "M1.6",
+          "name": "Build the core pipeline graph",
+          "dependencies": ["M1.2", "M1.4", "M1.5"],
+          "definition_of_done": "The nodes are connected in `eassistant/graph/builder.py` to form the complete text-to-draft pipeline."
+        }
+      ]
+    },
+    {
+      "id": "M2",
+      "name": "Milestone 2: Features & UX",
+      "dependencies": ["M1"],
+      "definition_of_done": "PDF parsing, draft refinement, and multi-turn conversation are all functional.",
+      "tasks": [
+        {
+          "id": "M2.1",
+          "name": "Implement PDF parsing utility",
+          "dependencies": [],
+          "definition_of_done": "A function in `eassistant/utils/files.py` can extract text from a PDF file path."
+        },
+        {
+          "id": "M2.2",
+          "name": "Enhance `parse_input` node to handle file paths",
+          "dependencies": ["M1.2", "M2.1"],
+          "definition_of_done": "The node can differentiate between raw text and a file path, using the PDF utility when needed."
+        },
+        {
+          "id": "M2.3",
+          "name": "Implement `refine_draft` node",
+          "dependencies": ["M1.1", "M1.3"],
+          "definition_of_done": "The node takes `user_feedback` and the latest draft to generate a new version."
+        },
+        {
+          "id": "M2.4",
+          "name": "Add conditional logic for refinement in the graph",
+          "dependencies": ["M1.6", "M2.3"],
+          "definition_of_done": "The graph can now route user input to the `refine_draft` node or start a new email."
+        },
+        {
+          "id": "M2.5",
+          "name": "Manage session history",
+          "dependencies": ["M1.1"],
+          "definition_of_done": "The state correctly handles multiple emails within a single run of the CLI application."
+        }
+      ]
+    },
+    {
+      "id": "M3",
+      "name": "Milestone 3: Polish & Ship",
+      "dependencies": ["M2"],
+      "definition_of_done": "The application is robust, with proper storage, error handling, and sufficient test coverage.",
+      "tasks": [
+        {
+          "id": "M3.1",
+          "name": "Implement Storage service (local file)",
+          "dependencies": [],
+          "definition_of_done": "A service in `eassistant/services/storage.py` can save a string to a local file."
+        },
+        {
+          "id": "M3.2",
+          "name": "Implement Storage service (S3)",
+          "dependencies": ["M3.1"],
+          "definition_of_done": "The storage service can optionally upload a file to a user-provided S3 bucket."
+        },
+        {
+          "id": "M3.3",
+          "name": "Implement `save_draft` node",
+          "dependencies": ["M1.1", "M3.1"],
+          "definition_of_done": "A node is created that uses the storage service to save the latest draft."
+        },
+        {
+          "id": "M3.4",
+          "name": "Implement `handle_error` node and graph integration",
+          "dependencies": ["M1.6"],
+          "definition_of_done": "The graph can catch exceptions from any node and route to a node that prints a user-friendly error message."
+        },
+        {
+          "id": "M3.5",
+          "name": "Write unit tests for nodes and services",
+          "dependencies": [],
+          "definition_of_done": "Key business logic in nodes and services has corresponding pytest tests."
+        },
+        {
+          "id": "M3.6",
+          "name": "Write integration tests for the graph",
+          "dependencies": ["M1.6", "M2.4"],
+          "definition_of_done": "Tests exist that run the entire graph with mock data to verify end-to-end logic."
+        },
+        {
+          "id": "M3.7",
+          "name": "Achieve >80% test coverage",
+          "dependencies": ["M3.5", "M3.6"],
+          "definition_of_done": "`pytest --cov` reports coverage of 80% or higher."
+        }
+      ]
+    }
+  ]
+}
