@@ -1,6 +1,6 @@
 from typing import TypedDict
 
-from langgraph.graph import END, StateGraph
+from langgraph.graph import END, CompiledGraph, StateGraph
 
 
 class HelloWorldState(TypedDict):
@@ -14,7 +14,7 @@ def hello_node(state: HelloWorldState) -> HelloWorldState:
     return {"message": state["message"] + " world!"}
 
 
-def get_hello_world_graph() -> StateGraph:
+def get_hello_world_graph() -> CompiledGraph:
     """
     Builds the 'hello world' LangGraph instance.
     """
