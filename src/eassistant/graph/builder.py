@@ -1,34 +1,19 @@
-from typing import TypedDict
-
 from langgraph.graph import END, StateGraph
 from langgraph.prebuilt import CompiledGraph
 
+from .nodes import hello_node
+from .state import GraphState
 
-class HelloWorldState(TypedDict):
-    message: str
 
-
-def hello_node(state: HelloWorldState) -> HelloWorldState:
+def create_graph() -> CompiledGraph:
     """
-    A simple node that appends ' world!' to the message.
+    Creates the conversational assistant graph.
     """
-    return {"message": state["message"] + " world!"}
+    workflow = StateGraph(GraphState)
 
-
-def get_hello_world_graph() -> CompiledGraph:
-    """
-    Builds the 'hello world' LangGraph instance.
-    """
-    workflow = StateGraph(HelloWorldState)
     workflow.add_node("hello", hello_node)
     workflow.set_entry_point("hello")
     workflow.add_edge("hello", END)
-    return workflow.compile()
 
-
-if __name__ == "__main__":
-    # Example of how to run the graph
-    graph = get_hello_world_graph()
-    initial_state = {"message": "hello"}
-    final_state = graph.invoke(initial_state)
-    print(final_state)
+    app = workflow.compile()
+    return app

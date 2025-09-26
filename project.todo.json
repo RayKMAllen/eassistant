@@ -30,19 +30,25 @@
           "id": "M0.3",
           "name": "Implement basic Typer CLI shell",
           "dependencies": ["M0.1"],
-          "definition_of_done": "A `shell.py` entry point exists that can be run to start an interactive loop that accepts user input."
+          "definition_of_done": "A `shell.py` entry point exists that can be run to start an interactive loop that accepts user input.",
+          "status": "done",
+          "completed_at": "2025-09-26T15:25:24.543Z"
         },
         {
           "id": "M0.4",
           "name": "Create 'hello world' LangGraph instance",
           "dependencies": ["M0.1"],
-          "definition_of_done": "A simple graph with a start and end node is defined and can be invoked."
+          "definition_of_done": "A simple graph with a start and end node is defined and can be invoked.",
+          "status": "done",
+          "completed_at": "2025-09-26T15:30:20.123Z"
         },
         {
           "id": "M0.5",
           "name": "Integrate graph into CLI shell",
           "dependencies": ["M0.3", "M0.4"],
-          "definition_of_done": "User input in the CLI is passed to the LangGraph instance and the result is printed to the console."
+          "definition_of_done": "User input in the CLI is passed to the LangGraph instance and the result is printed to the console.",
+          "status": "done",
+          "completed_at": "2025-09-26T15:36:51.485Z"
         }
       ]
     },
