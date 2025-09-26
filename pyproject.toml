@@ -16,6 +16,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
+package-dir = {"" = "src"}
 packages = ["eassistant"]
 
 [tool.black]
@@ -28,7 +29,7 @@ lint.select = ["E", "F", "W", "I"]
 # By default, mypy is not strict
 strict = false
 files = [
-    "eassistant",
+    "src/eassistant",
     "tests"
 ]
 # We enable strict checking for specific modules that are fully typed
