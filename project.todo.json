@@ -14,13 +14,17 @@
           "id": "M0.1",
           "name": "Set up folder structure and git repository",
           "dependencies": [],
-          "definition_of_done": "The folder structure as defined in the architectural plan exists and is checked into a git repository with a .gitignore file."
+          "definition_of_done": "The folder structure as defined in the architectural plan exists and is checked into a git repository with a .gitignore file.",
+          "status": "done",
+          "completed_at": "2025-09-26T14:55:31.709Z"
         },
         {
           "id": "M0.2",
-          "name": "Define project dependencies in requirements.txt",
+          "name": "Define project dependencies in pyproject.toml",
           "dependencies": ["M0.1"],
-          "definition_of_done": "requirements.txt contains all necessary libraries (langgraph, pydantic, typer, rich, boto3, etc.)."
+          "definition_of_done": "pyproject.toml contains all necessary libraries (langgraph, pydantic, typer, rich, boto3, etc.).",
+          "status": "done",
+          "completed_at": "2025-09-26T14:56:15.087Z"
         },
         {
           "id": "M0.3",

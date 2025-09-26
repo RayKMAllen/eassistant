@@ -32,6 +32,11 @@ files = [
     "src/eassistant",
     "tests"
 ]
+exclude = [
+    "\\.venv",
+    "src/eassistant/notebooks"
+]
+follow_imports = "skip"
 # We enable strict checking for specific modules that are fully typed
 overrides = [
     { module = "eassistant.graph.state", strict = true },

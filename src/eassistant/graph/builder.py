@@ -1,6 +1,7 @@
 from typing import TypedDict
 
-from langgraph.graph import END, CompiledGraph, StateGraph
+from langgraph.graph import END, StateGraph
+from langgraph.prebuilt import CompiledGraph
 
 
 class HelloWorldState(TypedDict):
