@@ -64,7 +64,7 @@
       "id": "M1",
       "name": "Milestone 1: Core Pipeline (Text)",
       "dependencies": ["M0"],
-      "definition_of_done": "The full pipeline from pasting plain text to generating a first draft is functional.",
+      "definition_of_done": "The full pipeline from pasting plain text to generating a first draft is functional and covered by a baseline integration test.",
       "tasks": [
         {
           "id": "M1.1",
@@ -94,7 +94,9 @@
           "id": "M1.4",
           "name": "Implement `extract_and_summarize` node",
           "dependencies": ["M1.1", "M1.3"],
-          "definition_of_done": "The node calls the LLM service and populates the `extracted_entities` and `summary` fields in the state."
+          "definition_of_done": "The node calls the LLM service and populates the `extracted_entities` and `summary` fields in the state.",
+          "status": "done",
+          "completed_at": "2025-09-27T09:35:11.984Z"
         },
         {
           "id": "M1.5",
@@ -107,6 +109,12 @@
           "name": "Build the core pipeline graph",
           "dependencies": ["M1.2", "M1.4", "M1.5"],
           "definition_of_done": "The nodes are connected in `eassistant/graph/builder.py` to form the complete text-to-draft pipeline."
+        },
+        {
+          "id": "M1.7",
+          "name": "Write integration test for core pipeline",
+          "dependencies": ["M1.6"],
+          "definition_of_done": "A pytest test exists that runs the entire M1 graph with a mocked LLM service to verify the end-to-end logic."
         }
       ]
     },
@@ -114,13 +122,13 @@
       "id": "M2",
       "name": "Milestone 2: Features & UX",
       "dependencies": ["M1"],
-      "definition_of_done": "PDF parsing, draft refinement, and multi-turn conversation are all functional.",
+      "definition_of_done": "PDF parsing, draft refinement, and multi-turn conversation are all functional and covered by integration tests.",
       "tasks": [
         {
           "id": "M2.1",
           "name": "Implement PDF parsing utility",
           "dependencies": [],
-          "definition_of_done": "A function in `eassistant/utils/files.py` can extract text from a PDF file path."
+          "definition_of_done": "A function in `eassistant/utils/files.py` can extract text from a PDF file path, with an accompanying unit test."
         },
         {
           "id": "M2.2",
@@ -145,6 +153,12 @@
           "name": "Manage session history",
           "dependencies": ["M1.1"],
           "definition_of_done": "The state correctly handles multiple emails within a single run of the CLI application."
+        },
+        {
+          "id": "M2.6",
+          "name": "Write integration tests for new features",
+          "dependencies": ["M2.2", "M2.4"],
+          "definition_of_done": "Integration tests are added to verify the file parsing and draft refinement pathways in the graph."
         }
       ]
     },
@@ -180,15 +194,15 @@
         },
         {
           "id": "M3.5",
-          "name": "Write unit tests for nodes and services",
-          "dependencies": [],
-          "definition_of_done": "Key business logic in nodes and services has corresponding pytest tests."
+          "name": "Write comprehensive unit tests for nodes and services",
+          "dependencies": ["M1.7", "M2.6"],
+          "definition_of_done": "Key business logic in all nodes and services has corresponding pytest unit tests."
         },
         {
           "id": "M3.6",
-          "name": "Write integration tests for the graph",
-          "dependencies": ["M1.6", "M2.4"],
-          "definition_of_done": "Tests exist that run the entire graph with mock data to verify end-to-end logic."
+          "name": "Expand integration tests for edge cases",
+          "dependencies": ["M1.7", "M2.6"],
+          "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases."
         },
         {
           "id": "M3.7",

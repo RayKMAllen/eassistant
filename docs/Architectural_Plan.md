@@ -171,7 +171,19 @@ graph TD
 
 ---
 
-## 6. Hierarchical TODO List (Preview)
+## 6. Testing Strategy
+
+This project adopts a pragmatic, hybrid testing strategy that balances rapid prototyping with long-term robustness. It is not a strict Test-Driven Development (TDD) approach; instead, it builds a safety net of tests incrementally.
+
+-   **Unit Tests for Deterministic Logic:** Core utilities and services with predictable outcomes (e.g., `eassistant/utils/files.py`, `eassistant/services/storage.py`) should be developed with accompanying unit tests from the outset.
+-   **Milestone-Based Integration Tests:** At the conclusion of each major feature milestone (M1, M2), a baseline integration test will be added. These tests will run the full graph for that milestone's functionality, using a mocked LLM service. This ensures the core logic and data flow are correct and protects against regressions as new features are added.
+-   **Comprehensive Coverage in Polish Phase:** Milestone 3 is dedicated to hardening the application. During this phase, comprehensive unit tests will be written for all remaining business logic (nodes, complex services), and the integration test suite will be expanded to cover edge cases and error conditions. The final goal is to achieve >80% test coverage.
+
+This approach allows for flexibility during the initial, more experimental phases of development while ensuring a high-quality, well-tested application upon completion.
+
+---
+
+## 7. Hierarchical TODO List (Preview)
 
 The final output will be a `project.todo.json` file. Here is a conceptual preview of its structure.
 
@@ -208,7 +220,7 @@ This structured plan should provide a solid foundation for the project.
 
 ---
 
-## 7. Detailed Project TODO List (JSON)
+## 8. Detailed Project TODO List (JSON)
 
 This section contains the hierarchical task breakdown in a JSON format. This can be saved as `project.todo.json` during the implementation phase.
 
@@ -395,7 +407,7 @@ This section contains the hierarchical task breakdown in a JSON format. This can
 
 ---
 
-## 8. Development Workflow: The TaskCycle
+## 9. Development Workflow: The TaskCycle
 
 The development of this project is intended to be assisted by an automated agent referred to as the "TaskCycle". This agent automates the process of picking a task from `project.todo.json`, implementing the necessary code changes, and preparing the result for commit.
 
