@@ -222,7 +222,9 @@
           "id": "M3.5",
           "name": "Write comprehensive unit tests for nodes and services",
           "dependencies": ["M1.7", "M2.6"],
-          "definition_of_done": "Key business logic in all nodes and services has corresponding pytest unit tests."
+          "definition_of_done": "Key business logic in all nodes and services has corresponding pytest unit tests.",
+          "status": "done",
+          "completed_at": "2025-09-27T13:53:29.293Z"
         },
         {
           "id": "M3.6",
