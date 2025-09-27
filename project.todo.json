@@ -198,7 +198,9 @@
           "id": "M3.2",
           "name": "Implement Storage service (S3)",
           "dependencies": ["M3.1"],
-          "definition_of_done": "The storage service can optionally upload a file to a user-provided S3 bucket."
+          "definition_of_done": "The storage service can optionally upload a file to a user-provided S3 bucket.",
+          "status": "done",
+          "completed_at": "2025-09-27T13:15:23.716Z"
         },
         {
           "id": "M3.3",
