@@ -174,7 +174,9 @@
           "id": "M2.6",
           "name": "Write integration tests for new features",
           "dependencies": ["M2.2", "M2.4"],
-          "definition_of_done": "Integration tests are added to verify the file parsing and draft refinement pathways in the graph."
+          "definition_of_done": "Integration tests are added to verify the file parsing and draft refinement pathways in the graph.",
+          "status": "done",
+          "completed_at": "2025-09-27T12:54:01.464Z"
         }
       ]
     },

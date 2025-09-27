@@ -1,6 +1,6 @@
 import json
 import uuid
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -200,3 +200,62 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
 
     # 7. Verify the LLM was called for both emails
     assert mocked_llm_service.invoke.call_count == 4
+
+
+def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None:
+    """
+    Integration test for the M2 PDF parsing pipeline.
+
+    It verifies that the graph correctly identifies a PDF path, extracts text,
+    and then proceeds with the standard pipeline.
+    """
+    # 1. Arrange: Mock the file system and PDF extraction
+    with (
+        patch("eassistant.graph.nodes.Path") as mock_path,
+        patch("eassistant.graph.nodes.extract_text_from_pdf") as mock_extract,
+    ):
+        # Configure the mock Path object
+        mock_path.return_value.is_file.return_value = True
+        mock_path.return_value.suffix = ".pdf"
+        mock_path.return_value.__str__.return_value = "dummy/test.pdf"
+
+        # Configure the mock PDF extractor
+        mock_extract.return_value = "This is the extracted PDF text."
+
+        # 2. Replace the actual LLMService with our mock
+        from eassistant.graph import nodes
+
+        nodes.llm_service = mocked_llm_service
+
+        # 3. Build the graph
+        app = build_graph()
+
+        # 4. Define the initial state with a path to a PDF
+        initial_state = GraphState(
+            session_id=uuid.uuid4(),
+            original_email="dummy/test.pdf",  # Input is a file path
+            email_path=None,
+            key_info=None,
+            summary=None,
+            draft_history=[],
+            current_tone=None,
+            user_feedback=None,
+            error_message=None,
+        )
+
+        # 5. Run the graph
+        final_state = app.invoke(initial_state)
+
+        # 6. Assert the final state
+        assert final_state is not None
+        # Verify the PDF text was used for the summary
+        assert final_state["summary"] == "This is a test summary."
+        assert final_state["email_path"] == "dummy/test.pdf"
+        assert final_state["draft_history"] is not None
+        assert len(final_state["draft_history"]) == 1
+        assert final_state["draft_history"][0]["content"] == "This is a test draft."
+
+        # 7. Verify mocks were called
+        mock_path.assert_called_with("dummy/test.pdf")
+        mock_extract.assert_called_with(mock_path.return_value)
+        assert mocked_llm_service.invoke.call_count == 2
