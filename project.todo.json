@@ -238,7 +238,9 @@
           "id": "M3.7",
           "name": "Achieve >80% test coverage",
           "dependencies": ["M3.5", "M3.6"],
-          "definition_of_done": "`pytest --cov` reports coverage of 80% or higher."
+          "definition_of_done": "`pytest --cov` reports coverage of 80% or higher.",
+          "status": "done",
+          "completed_at": "2025-09-27T14:11:00.495Z"
         }
       ]
     }

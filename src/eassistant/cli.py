@@ -87,6 +87,8 @@ def shell() -> None:
         except (KeyboardInterrupt, EOFError):
             break
 
+    console.print("[bold green]Goodbye![/bold green]")
+
 
 if __name__ == "__main__":
     app()

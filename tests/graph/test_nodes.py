@@ -407,6 +407,30 @@ def test_extract_and_summarize_llm_exception(mocker: MockerFixture) -> None:
     )
 
 
+def test_extract_and_summarize_no_content() -> None:
+    """
+    Tests that extract_and_summarize handles the case where there is no email content.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "original_email": None,
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = extract_and_summarize(initial_state)
+
+    # Assert
+    assert result_state["error_message"] == "No email content to process."
+
+
 def test_generate_initial_draft_missing_data() -> None:
     """
     Tests that generate_initial_draft handles missing summary or key_info.
@@ -431,6 +455,36 @@ def test_generate_initial_draft_missing_data() -> None:
     assert (
         result_state["error_message"]
         == "Missing summary or entities to generate a draft."
+    )
+
+
+def test_generate_initial_draft_llm_exception(mocker: MockerFixture) -> None:
+    """
+    Tests that generate_initial_draft handles exceptions from the LLM service.
+    """
+    # Arrange
+    mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
+    error_message = "LLM is down"
+    mock_llm.invoke.side_effect = Exception(error_message)
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "key_info": {"sender_name": "Test"},
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = generate_initial_draft(initial_state)
+
+    # Assert
+    assert f"Failed to generate draft: {error_message}" in str(
+        result_state["error_message"]
     )
 
 
@@ -482,6 +536,36 @@ def test_refine_draft_no_feedback() -> None:
     assert (
         result_state["error_message"]
         == "No user feedback provided to refine the draft."
+    )
+
+
+def test_refine_draft_llm_exception(mocker: MockerFixture) -> None:
+    """
+    Tests that refine_draft handles exceptions from the LLM service.
+    """
+    # Arrange
+    mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
+    error_message = "LLM is down"
+    mock_llm.invoke.side_effect = Exception(error_message)
+
+    initial_state: GraphState = {
+        "draft_history": [{"content": "A draft.", "tone": "professional"}],
+        "user_feedback": "Make it better.",
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": "Test email",
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "current_tone": "professional",
+        "error_message": None,
+    }
+
+    # Act
+    result_state = refine_draft(initial_state)
+
+    # Assert
+    assert f"Failed to refine draft: {error_message}" in str(
+        result_state["error_message"]
     )
 
 
