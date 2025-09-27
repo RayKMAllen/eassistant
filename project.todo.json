@@ -190,7 +190,9 @@
           "id": "M3.1",
           "name": "Implement Storage service (local file)",
           "dependencies": [],
-          "definition_of_done": "A service in `eassistant/services/storage.py` can save a string to a local file."
+          "definition_of_done": "A service in `eassistant/services/storage.py` can save a string to a local file.",
+          "status": "done",
+          "completed_at": "2025-09-27T13:09:49.375Z"
         },
         {
           "id": "M3.2",
