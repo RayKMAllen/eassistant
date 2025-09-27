@@ -12,7 +12,7 @@ customModes:
       - read
       - command
       - - edit
-        - fileRegex: "(^src/.*|^tests/.*|^docs/.*|project\\.todo\\.json)$"
+        - fileRegex: "(^src/.*|^tests/.*|^docs/.*|project\\.todo\\.json|^[^/]+)$"
           description: "Only source code, tests, docs, and the project todo file."
     customInstructions: >-
       Process (one cycle):

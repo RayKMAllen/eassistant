@@ -49,6 +49,14 @@
           "definition_of_done": "User input in the CLI is passed to the LangGraph instance and the result is printed to the console.",
           "status": "done",
           "completed_at": "2025-09-26T15:36:51.485Z"
+        },
+        {
+          "id": "M0.6",
+          "name": "Create minimal README.md",
+          "dependencies": ["M0.1"],
+          "definition_of_done": "A README.md file exists at the project root with a basic project title and description.",
+          "status": "done",
+          "completed_at": "2025-09-27T08:28:03.848Z"
         }
       ]
     },
