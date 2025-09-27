@@ -1,11 +1,10 @@
 from langgraph.graph import END, StateGraph
-from langgraph.prebuilt import CompiledGraph
 
 from .nodes import extract_and_summarize, generate_initial_draft, parse_input
 from .state import GraphState
 
 
-def create_graph() -> CompiledGraph:
+def build_graph() -> StateGraph:
     """
     Creates the conversational assistant graph.
     """
@@ -22,5 +21,4 @@ def create_graph() -> CompiledGraph:
     workflow.add_edge("extract_and_summarize", "generate_initial_draft")
     workflow.add_edge("generate_initial_draft", END)
 
-    app = workflow.compile()
-    return app
+    return workflow.compile()

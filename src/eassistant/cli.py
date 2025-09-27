@@ -1,7 +1,7 @@
 import typer
 from rich.console import Console
 
-from eassistant.graph.builder import create_graph
+from eassistant.graph.builder import build_graph
 
 app = typer.Typer()
 
@@ -13,7 +13,7 @@ def shell() -> None:
     """
     console = Console()
     console.print("[bold green]Welcome to the e-assistant shell![/bold green]")
-    graph = create_graph()
+    graph = build_graph()
     while True:
         try:
             user_input = console.input("[bold yellow]>>> [/bold yellow]")

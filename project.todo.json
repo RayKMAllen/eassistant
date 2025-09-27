@@ -118,8 +118,10 @@
           "id": "M1.7",
           "name": "Write integration test for core pipeline",
           "dependencies": ["M1.6"],
-          "definition_of_done": "A pytest test exists that runs the entire M1 graph with a mocked LLM service to verify the end-to-end logic."
-        }
+          "definition_of_done": "A pytest test exists that runs the entire M1 graph with a mocked LLM service to verify the end-to-end logic.",
+          "status": "done",
+          "completed_at": "2025-09-27T10:11:16.031Z"
+       }
       ]
     },
     {

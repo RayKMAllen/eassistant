@@ -20,9 +20,9 @@ class LLMService:
             service_name="bedrock-runtime", region_name=region_name
         )
 
-    def invoke_claude(self, prompt: str) -> str:
+    def invoke(self, prompt: str) -> str:
         """
-        Invokes the Anthropic Claude v3 Sonnet model.
+        Invokes the configured LLM.
 
         Args:
             prompt: The prompt to send to the model.

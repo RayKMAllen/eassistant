@@ -30,7 +30,7 @@ class GraphState(TypedDict):
     email_path: Optional[str]
     extracted_entities: Optional[ExtractedEntities]
     summary: Optional[str]
-    draft_history: List[Draft]
-    current_tone: str
+    draft_history: Optional[List[Draft]]
+    current_tone: Optional[str]
     user_feedback: Optional[str]
     error_message: Optional[str]

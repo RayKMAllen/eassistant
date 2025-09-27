@@ -3,6 +3,10 @@ import json
 from ..services.llm import LLMService
 from .state import Draft, GraphState
 
+# Use a single, module-level instance for the LLM service.
+# This allows for easier mocking during tests.
+llm_service = LLMService()
+
 
 def parse_input(state: GraphState) -> GraphState:
     """
@@ -25,8 +29,6 @@ def extract_and_summarize(state: GraphState) -> GraphState:
         state["error_message"] = "No email content to process."
         return state
 
-    llm_service = LLMService()
-
     prompt = f"""
         Analyze the following email and extract the following information:
         1.  **sender**: The sender's name or email address.
@@ -44,7 +46,7 @@ def extract_and_summarize(state: GraphState) -> GraphState:
     """
 
     try:
-        response_text = llm_service.invoke_claude(prompt)
+        response_text = llm_service.invoke(prompt)
         response_json = json.loads(response_text)
 
         state["extracted_entities"] = {
@@ -74,8 +76,6 @@ def generate_initial_draft(state: GraphState) -> GraphState:
         state["error_message"] = "Missing summary or entities to generate a draft."
         return state
 
-    llm_service = LLMService()
-
     prompt = f"""
         Based on the following summary and extracted entities from an email,
         write a professional and helpful reply.
@@ -96,14 +96,15 @@ def generate_initial_draft(state: GraphState) -> GraphState:
     """
 
     try:
-        draft_content = llm_service.invoke_claude(prompt)
+        draft_content = llm_service.invoke(prompt)
         new_draft: Draft = {
             "content": draft_content,
-            "tone": state.get("current_tone", "professional"),
+            "tone": state.get("current_tone") or "professional",
         }
-        if "draft_history" not in state:
+        if state.get("draft_history") is None:
             state["draft_history"] = []
-        state["draft_history"].append(new_draft)
+        # mypy doesn't know that the above line guarantees draft_history is a list
+        state["draft_history"].append(new_draft)  # type: ignore
 
     except Exception as e:
         state["error_message"] = f"Failed to generate draft: {e}"
