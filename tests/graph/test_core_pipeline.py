@@ -303,3 +303,94 @@ def test_error_handling_integration(capsys) -> None:
     assert expected_output in captured.out
     # Verify the LLM was called once (and failed)
     mock_llm.invoke.assert_called_once()
+
+
+def test_invalid_file_path_error_handling(capsys) -> None:
+    """
+    Tests that the graph correctly handles a path to a non-existent file.
+    """
+    # 1. Arrange: Mock the Path object to indicate the file doesn't exist
+    with patch("eassistant.graph.nodes.Path") as mock_path:
+        mock_path.return_value.is_file.return_value = False
+        mock_path.return_value.suffix = ".pdf"
+        # Also need to mock the __str__ to ensure the error message is correct
+        mock_path.return_value.__str__.return_value = "nonexistent/file.pdf"
+
+        # 2. Build the graph
+        app = build_graph()
+
+        # 3. Define initial state with the invalid path
+        initial_state = GraphState(
+            session_id=uuid.uuid4(),
+            original_email="nonexistent/file.pdf",
+            draft_history=[],
+        )
+
+        # 4. Run the graph
+        final_state = app.invoke(initial_state)
+
+        # 5. Assert that the error was caught and handled
+        assert final_state is not None
+        assert final_state.get("error_message") is None  # Error is handled and cleared
+
+        captured = capsys.readouterr()
+        expected_output = "An error occurred: File not found: nonexistent/file.pdf"
+        assert expected_output in captured.out
+
+
+def test_malformed_llm_json_response_error_handling(
+    mocked_llm_service: MagicMock, capsys
+) -> None:
+    """
+    Tests that the graph handles a malformed JSON response from the LLM.
+    """
+    # 1. Arrange: Set up the mock to return a non-JSON string
+    from eassistant.graph import nodes
+
+    mocked_llm_service.invoke.side_effect = ["This is not valid JSON."]
+    nodes.llm_service = mocked_llm_service
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define initial state
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        original_email="A test email.",
+        draft_history=[],
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert that the error was caught and handled
+    assert final_state is not None
+    assert final_state.get("error_message") is None
+
+    captured = capsys.readouterr()
+    assert "Failed to parse LLM response as JSON" in captured.out
+
+
+def test_empty_user_input_error_handling(capsys) -> None:
+    """
+    Tests that the graph handles empty or whitespace-only user input.
+    """
+    # 1. Build the graph
+    app = build_graph()
+
+    # 2. Define initial state with empty input
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        original_email="   ",  # Whitespace only
+        draft_history=[],
+    )
+
+    # 3. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 4. Assert that the error was caught and handled
+    assert final_state is not None
+    assert final_state.get("error_message") is None
+
+    captured = capsys.readouterr()
+    assert "Input email cannot be empty." in captured.out

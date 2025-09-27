@@ -19,22 +19,30 @@ def parse_input(state: GraphState) -> GraphState:
     Otherwise, it treats the input as the email content itself.
     """
     print("Parsing input...")
-    user_input = state.get("original_email")
+    user_input_raw = state.get("original_email")
+    user_input = user_input_raw.strip() if user_input_raw else ""
 
     if not user_input:
-        state["original_email"] = "No input provided"
+        state["error_message"] = "Input email cannot be empty."
         return state
 
+    # After stripping, the original_email in the state should be updated
+    state["original_email"] = user_input
     input_path = Path(user_input)
 
-    if input_path.is_file() and input_path.suffix.lower() == ".pdf":
+    # Check if the input looks like a path before checking if it's a file
+    # This avoids treating a sentence with a period as a file path.
+    is_potential_path = "." in user_input and " " not in user_input
+
+    if is_potential_path and input_path.suffix.lower() == ".pdf":
+        if not input_path.is_file():
+            state["error_message"] = f"File not found: {user_input}"
+            return state
         try:
             state["original_email"] = extract_text_from_pdf(input_path)
             state["email_path"] = str(input_path)
         except ValueError as e:
             state["error_message"] = str(e)
-    # If it's not a PDF file path, we assume the input is the email text itself.
-    # No changes needed to state["original_email"] in that case.
 
     return state
 

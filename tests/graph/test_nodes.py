@@ -342,7 +342,7 @@ def test_parse_input_no_input() -> None:
     result_state = parse_input(initial_state)
 
     # Assert
-    assert result_state["original_email"] == "No input provided"
+    assert result_state["error_message"] == "Input email cannot be empty."
 
 
 def test_parse_input_pdf_extraction_error(mocker: MockerFixture, tmp_path) -> None:

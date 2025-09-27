@@ -230,7 +230,9 @@
           "id": "M3.6",
           "name": "Expand integration tests for edge cases",
           "dependencies": ["M1.7", "M2.6"],
-          "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases."
+          "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases.",
+          "status": "done",
+          "completed_at": "2025-09-27T13:57:54.397Z"
         },
         {
           "id": "M3.7",
