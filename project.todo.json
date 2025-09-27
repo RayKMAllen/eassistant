@@ -70,13 +70,17 @@
           "id": "M1.1",
           "name": "Define Pydantic models for GraphState",
           "dependencies": [],
-          "definition_of_done": "The core `GraphState` class is defined in `eassistant/graph/state.py` with all required fields."
+          "definition_of_done": "The core `GraphState` class is defined in `eassistant/graph/state.py` with all required fields.",
+          "status": "done",
+          "completed_at": "2025-09-27T08:43:05.000Z"
         },
         {
           "id": "M1.2",
           "name": "Implement `parse_input` node for plain text",
           "dependencies": ["M1.1"],
-          "definition_of_done": "The node correctly takes user input and populates the `original_email` field in the state."
+          "definition_of_done": "The node correctly takes user input and populates the `original_email` field in the state.",
+          "status": "done",
+          "completed_at": "2025-09-27T08:46:00.000Z"
         },
         {
           "id": "M1.3",

@@ -20,7 +20,17 @@ def shell() -> None:
             if user_input.lower() in ["exit", "quit"]:
                 break
 
-            inputs = {"user_input": user_input}
+            inputs = {
+                "session_id": "123",
+                "original_email": user_input,
+                "email_path": None,
+                "extracted_entities": None,
+                "summary": None,
+                "draft_history": [],
+                "current_tone": "professional",
+                "user_feedback": None,
+                "error_message": None,
+            }
             for event in graph.stream(inputs):
                 console.print(event)
 

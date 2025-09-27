@@ -9,6 +9,7 @@ dependencies = [
     "typer",
     "rich",
     "boto3",
+    "pydantic-settings",
 ]
 
 [build-system]
@@ -28,6 +29,7 @@ lint.select = ["E", "F", "W", "I"]
 [tool.mypy]
 # By default, mypy is not strict
 strict = false
+plugins = ["pydantic.mypy"]
 files = [
     "src/eassistant",
     "tests"
