@@ -177,6 +177,13 @@
           "definition_of_done": "Integration tests are added to verify the file parsing and draft refinement pathways in the graph.",
           "status": "done",
           "completed_at": "2025-09-27T12:54:01.464Z"
+        },
+        {
+          "id": "M2.7",
+          "name": "Display extracted info to user",
+          "dependencies": ["M1.4"],
+          "definition_of_done": "After the `extract_and_summarize` node runs, the extracted `key_info` and `summary` are printed to the console for the user to see.",
+          "status": "pending"
         }
       ]
     },
@@ -241,6 +248,42 @@
           "definition_of_done": "`pytest --cov` reports coverage of 80% or higher.",
           "status": "done",
           "completed_at": "2025-09-27T14:11:00.495Z"
+        },
+        {
+          "id": "M3.8",
+          "name": "Increase test coverage to >95%",
+          "dependencies": ["M3.7"],
+          "definition_of_done": "`pytest --cov` reports coverage of 95% or higher.",
+          "status": "pending"
+        },
+        {
+          "id": "M4",
+          "name": "Milestone 4: Project Status Reporting and Test Debugging",
+          "dependencies": ["M3"],
+          "definition_of_done": "The project status can be automatically extracted, and existing tests are debugged.",
+          "tasks": [
+            {
+              "id": "M4.1",
+              "name": "Process Project_Status_Summary.md",
+              "dependencies": [],
+              "definition_of_done": "The Project_Status_Summary.md document is read and its contents are processed.",
+              "status": "pending"
+            },
+            {
+              "id": "M4.2",
+              "name": "Extract and print key info and summary from status doc",
+              "dependencies": ["M4.1"],
+              "definition_of_done": "Key information and a summary are extracted from the status document and printed to the console.",
+              "status": "pending"
+            },
+            {
+              "id": "M4.3",
+              "name": "Debug existing tests",
+              "dependencies": ["M3.8"],
+              "definition_of_done": "All existing tests pass reliably and any intermittent failures are resolved.",
+              "status": "pending"
+            }
+          ]
         }
       ]
     }
