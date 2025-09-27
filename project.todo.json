@@ -134,7 +134,9 @@
           "id": "M2.1",
           "name": "Implement PDF parsing utility",
           "dependencies": [],
-          "definition_of_done": "A function in `eassistant/utils/files.py` can extract text from a PDF file path, with an accompanying unit test."
+          "definition_of_done": "A function in `eassistant/utils/files.py` can extract text from a PDF file path, with an accompanying unit test.",
+          "status": "done",
+          "completed_at": "2025-09-27T11:06:31.147Z"
         },
         {
           "id": "M2.2",
