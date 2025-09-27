@@ -1,6 +1,8 @@
 import json
+from pathlib import Path
 
 from ..services.llm import LLMService
+from ..utils.files import extract_text_from_pdf
 from .state import Draft, GraphState
 
 # Use a single, module-level instance for the LLM service.
@@ -10,12 +12,27 @@ llm_service = LLMService()
 
 def parse_input(state: GraphState) -> GraphState:
     """
-    Parses the user input and populates the `original_email` field in the state.
+    Parses user input. If it's a file path, it extracts the text.
+    Otherwise, it treats the input as the email content itself.
     """
     print("Parsing input...")
-    # For M1, we just pass the input through. M2 will add file parsing.
-    if "original_email" not in state or not state["original_email"]:
+    user_input = state.get("original_email")
+
+    if not user_input:
         state["original_email"] = "No input provided"
+        return state
+
+    input_path = Path(user_input)
+
+    if input_path.is_file() and input_path.suffix.lower() == ".pdf":
+        try:
+            state["original_email"] = extract_text_from_pdf(input_path)
+            state["email_path"] = str(input_path)
+        except ValueError as e:
+            state["error_message"] = str(e)
+    # If it's not a PDF file path, we assume the input is the email text itself.
+    # No changes needed to state["original_email"] in that case.
+
     return state
 
 
@@ -106,10 +123,11 @@ def generate_initial_draft(state: GraphState) -> GraphState:
             "content": draft_content,
             "tone": state.get("current_tone") or "professional",
         }
-        if state.get("draft_history") is None:
-            state["draft_history"] = []
-        # mypy doesn't know that the above line guarantees draft_history is a list
-        state["draft_history"].append(new_draft)  # type: ignore
+        draft_history = state.get("draft_history")
+        if draft_history is None:
+            draft_history = []
+        draft_history.append(new_draft)
+        state["draft_history"] = draft_history
 
     except Exception as e:
         state["error_message"] = f"Failed to generate draft: {e}"

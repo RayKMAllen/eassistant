@@ -142,7 +142,9 @@
           "id": "M2.2",
           "name": "Enhance `parse_input` node to handle file paths",
           "dependencies": ["M1.2", "M2.1"],
-          "definition_of_done": "The node can differentiate between raw text and a file path, using the PDF utility when needed."
+          "definition_of_done": "The node can differentiate between raw text and a file path, using the PDF utility when needed.",
+          "status": "done",
+          "completed_at": "2025-09-27T11:15:00.420Z"
         },
         {
           "id": "M2.3",

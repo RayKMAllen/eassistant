@@ -3,7 +3,11 @@ from uuid import UUID
 
 from pytest_mock import MockerFixture
 
-from eassistant.graph.nodes import extract_and_summarize, generate_initial_draft
+from eassistant.graph.nodes import (
+    extract_and_summarize,
+    generate_initial_draft,
+    parse_input,
+)
 from eassistant.graph.state import GraphState
 
 
@@ -119,3 +123,64 @@ def test_extract_and_summarize_json_decode_error(mocker: MockerFixture) -> None:
     assert result_state.get("error_message") == "Failed to parse LLM response as JSON."
     assert result_state.get("summary") is None
     assert result_state.get("key_info") is None
+
+
+def test_parse_input_with_text() -> None:
+    """
+    Tests that the parse_input node handles plain text correctly.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "original_email": "This is a test email.",
+        "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = parse_input(initial_state)
+
+    # Assert
+    assert result_state["original_email"] == "This is a test email."
+    assert result_state["email_path"] is None
+
+
+def test_parse_input_with_pdf(mocker: MockerFixture, tmp_path) -> None:
+    """
+    Tests that the parse_input node correctly parses a PDF file.
+    """
+    # Arrange
+    pdf_content = "This is text from a PDF."
+    pdf_file = tmp_path / "test.pdf"
+    # A simple way to create a dummy PDF for testing text extraction.
+    # In a real scenario, you might use a library to create a valid PDF.
+    # For this test, we mock the extraction function.
+    mocker.patch(
+        "eassistant.graph.nodes.extract_text_from_pdf", return_value=pdf_content
+    )
+    # We need the file to exist for `is_file()` to pass.
+    pdf_file.touch()
+
+    initial_state: GraphState = {
+        "original_email": str(pdf_file),
+        "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = parse_input(initial_state)
+
+    # Assert
+    assert result_state["original_email"] == pdf_content
+    assert result_state["email_path"] == str(pdf_file)
