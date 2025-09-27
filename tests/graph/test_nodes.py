@@ -4,8 +4,46 @@ from uuid import UUID
 
 from pytest_mock import MockerFixture
 
-from eassistant.graph.nodes import extract_and_summarize
+from eassistant.graph.nodes import extract_and_summarize, generate_initial_draft
 from eassistant.graph.state import GraphState
+
+
+def test_generate_initial_draft_success(mocker: MockerFixture) -> None:
+    """
+    Tests the happy path for the generate_initial_draft node.
+    """
+    # Arrange
+    mock_llm_service = MagicMock()
+    mock_draft_content = "This is the generated draft."
+    mock_llm_service.invoke_claude.return_value = mock_draft_content
+    mocker.patch("eassistant.graph.nodes.LLMService", return_value=mock_llm_service)
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "extracted_entities": {
+            "sender": "test@example.com",
+            "subject": "Test Subject",
+            "key_points": ["point 1", "point 2"],
+        },
+        "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = generate_initial_draft(initial_state)
+
+    # Assert
+    assert result_state.get("error_message") is None
+    assert len(result_state["draft_history"]) == 1
+    first_draft = result_state["draft_history"][0]
+    assert first_draft["content"] == mock_draft_content
+    assert first_draft["tone"] == "professional"
+    mock_llm_service.invoke_claude.assert_called_once()
 
 
 def test_extract_and_summarize_success(mocker: MockerFixture) -> None:

@@ -102,13 +102,17 @@
           "id": "M1.5",
           "name": "Implement `generate_initial_draft` node",
           "dependencies": ["M1.1", "M1.3", "M1.4"],
-          "definition_of_done": "The node uses the summary and entities to generate a draft and adds it to the `draft_history` in the state."
+          "definition_of_done": "The node uses the summary and entities to generate a draft and adds it to the `draft_history` in the state.",
+          "status": "done",
+          "completed_at": "2025-09-27T09:48:58.956Z"
         },
         {
           "id": "M1.6",
           "name": "Build the core pipeline graph",
           "dependencies": ["M1.2", "M1.4", "M1.5"],
-          "definition_of_done": "The nodes are connected in `eassistant/graph/builder.py` to form the complete text-to-draft pipeline."
+          "definition_of_done": "The nodes are connected in `eassistant/graph/builder.py` to form the complete text-to-draft pipeline.",
+          "status": "done",
+          "completed_at": "2025-09-27T09:56:26.377Z"
         },
         {
           "id": "M1.7",

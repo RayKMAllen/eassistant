@@ -26,10 +26,15 @@ customModes:
       5) Run checks: pytest, ruff check, ruff format --check, mypy.
       6) If checks fail, enter a Debug routine:
          - Identify the single root cause; propose a minimal patch; apply it; re-run checks.
-      7) Verify the Definition of Done for the task. If complete:
-         - Mark the task "done" with a timestamp in project.todo.json.
-         - Summarize changes (files touched, key edits, test deltas).
-         - Propose the next unblocked task (do not start it without confirmation).
+      7) Verify the Definition of Done for the task. If incomplete, return to step 4. If complete:
+        - Mark the task "done" with a timestamp in project.todo.json.
+      8) Stage Changes and Suggest Commit:
+        - Stage all modified files, including project.todo.json, using `git add .`.
+        - Suggest a final commit command. Running this command will automatically trigger the pre-commit hooks. The suggested message should follow this format:
+          "feat({task_id}): {task_title}"
+      9) Summarize changes (files touched, key edits, test deltas).
+      10) Propose the next unblocked task (do not start it without confirmation).
+
 
       Guardrails:
       - Never edit prompts or infrastructure unless the task explicitly says so.
