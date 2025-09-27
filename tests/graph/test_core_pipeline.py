@@ -73,3 +73,130 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
 
     # 6. Verify that the LLM service was called correctly
     assert mocked_llm_service.invoke.call_count == 2
+
+
+def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
+    """
+    Integration test for the M2 refinement pipeline.
+
+    It verifies that the graph can correctly route user feedback to the
+    refinement node and generate a new draft.
+    """
+    # 1. Arrange: Set up the mocked LLM service for a two-turn conversation
+    from eassistant.graph import nodes
+
+    nodes.llm_service = mocked_llm_service
+    mocked_llm_service.invoke.side_effect = [
+        json.dumps(
+            {
+                "sender_name": "Test Sender",
+                "sender_contact": "test@example.com",
+                "receiver_name": "Test Receiver",
+                "receiver_contact": "receiver@example.com",
+                "subject": "Test Subject",
+                "summary": "This is a test summary.",
+            }
+        ),
+        "This is the initial draft.",
+        "This is the refined draft.",  # The third call is for refinement
+    ]
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. First turn: Generate the initial draft
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        original_email="A test email.",
+        email_path=None,
+        key_info=None,
+        summary=None,
+        draft_history=[],
+        current_tone="professional",
+        user_feedback=None,
+        error_message=None,
+    )
+    first_turn_state = app.invoke(initial_state)
+
+    # 4. Assert the state after the first turn
+    assert first_turn_state["draft_history"] is not None
+    assert len(first_turn_state["draft_history"]) == 1
+    assert (
+        first_turn_state["draft_history"][0]["content"] == "This is the initial draft."
+    )
+
+    # 5. Second turn: Provide feedback to refine the draft
+    second_turn_input_state = first_turn_state.copy()
+    second_turn_input_state["user_feedback"] = "Make it more formal."
+    second_turn_state = app.invoke(second_turn_input_state)
+
+    # 6. Assert the final state after refinement
+    assert second_turn_state["draft_history"] is not None
+    assert len(second_turn_state["draft_history"]) == 2
+    assert (
+        second_turn_state["draft_history"][1]["content"] == "This is the refined draft."
+    )
+
+    # 7. Verify that the LLM service was called three times
+    assert mocked_llm_service.invoke.call_count == 3
+
+
+def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
+    """
+    Integration test for handling multiple emails in a single session.
+
+    It verifies that after completing a draft, the user can start a new email
+    and the state is correctly managed.
+    """
+    # 1. Arrange: Set up the mocked LLM for two separate email flows
+    from eassistant.graph import nodes
+
+    nodes.llm_service = mocked_llm_service
+    mocked_llm_service.invoke.side_effect = [
+        # First email
+        json.dumps({"summary": "First email summary."}),
+        "First email draft.",
+        # Second email
+        json.dumps({"summary": "Second email summary."}),
+        "Second email draft.",
+    ]
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. First email: Run the graph to completion
+    first_email_state = GraphState(
+        session_id=uuid.uuid4(),
+        original_email="This is the first email.",
+        draft_history=[],
+        user_feedback=None,
+    )
+    final_state_first_email = app.invoke(first_email_state)
+
+    # 4. Assert the state after the first email
+    assert final_state_first_email["summary"] == "First email summary."
+    assert len(final_state_first_email["draft_history"]) == 1
+    assert (
+        final_state_first_email["draft_history"][0]["content"] == "First email draft."
+    )
+
+    # 5. Second email: Simulate starting a new email by resetting the relevant state
+    # In the CLI, this would be handled by the 'new' command logic.
+    second_email_initial_state = final_state_first_email.copy()
+    second_email_initial_state["original_email"] = "This is the second email."
+    second_email_initial_state["draft_history"] = []
+    second_email_initial_state["user_feedback"] = None
+    second_email_initial_state["summary"] = None
+    second_email_initial_state["key_info"] = None
+
+    final_state_second_email = app.invoke(second_email_initial_state)
+
+    # 6. Assert the state after the second email
+    assert final_state_second_email["summary"] == "Second email summary."
+    assert len(final_state_second_email["draft_history"]) == 1
+    assert (
+        final_state_second_email["draft_history"][0]["content"] == "Second email draft."
+    )
+
+    # 7. Verify the LLM was called for both emails
+    assert mocked_llm_service.invoke.call_count == 4

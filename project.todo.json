@@ -158,13 +158,17 @@
           "id": "M2.4",
           "name": "Add conditional logic for refinement in the graph",
           "dependencies": ["M1.6", "M2.3"],
-          "definition_of_done": "The graph can now route user input to the `refine_draft` node or start a new email."
+          "definition_of_done": "The graph can now route user input to the `refine_draft` node or start a new email.",
+          "status": "done",
+          "completed_at": "2025-09-27T12:33:58.439Z"
         },
         {
           "id": "M2.5",
           "name": "Manage session history",
           "dependencies": ["M1.1"],
-          "definition_of_done": "The state correctly handles multiple emails within a single run of the CLI application."
+          "definition_of_done": "The state correctly handles multiple emails within a single run of the CLI application.",
+          "status": "done",
+          "completed_at": "2025-09-27T12:36:15.510Z"
         },
         {
           "id": "M2.6",
