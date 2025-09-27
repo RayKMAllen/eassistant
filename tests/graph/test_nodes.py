@@ -18,10 +18,12 @@ def test_generate_initial_draft_success(mocker: MockerFixture) -> None:
 
     initial_state: GraphState = {
         "summary": "A test summary.",
-        "extracted_entities": {
-            "sender": "test@example.com",
+        "key_info": {
+            "sender_name": "Test Sender",
+            "sender_contact": "sender@example.com",
+            "receiver_name": "Test Receiver",
+            "receiver_contact": "receiver@example.com",
             "subject": "Test Subject",
-            "key_points": ["point 1", "point 2"],
         },
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
         "original_email": "Test email",
@@ -52,9 +54,11 @@ def test_extract_and_summarize_success(mocker: MockerFixture) -> None:
     """
     # Arrange
     mock_response = {
-        "sender": "test@example.com",
+        "sender_name": "Test Sender",
+        "sender_contact": "sender@example.com",
+        "receiver_name": "Test Receiver",
+        "receiver_contact": "receiver@example.com",
         "subject": "Test Subject",
-        "key_points": ["point 1", "point 2"],
         "summary": "This is a test summary.",
     }
     mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
@@ -64,7 +68,7 @@ def test_extract_and_summarize_success(mocker: MockerFixture) -> None:
         "original_email": "This is a test email body.",
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
         "email_path": None,
-        "extracted_entities": None,
+        "key_info": None,
         "summary": None,
         "draft_history": [],
         "current_tone": "professional",
@@ -78,11 +82,13 @@ def test_extract_and_summarize_success(mocker: MockerFixture) -> None:
     # Assert
     assert result_state.get("error_message") is None
     assert result_state.get("summary") == mock_response["summary"]
-    extracted_entities = result_state.get("extracted_entities")
-    assert extracted_entities is not None
-    assert extracted_entities.get("sender") == mock_response["sender"]
-    assert extracted_entities.get("subject") == mock_response["subject"]
-    assert extracted_entities.get("key_points") == mock_response["key_points"]
+    key_info = result_state.get("key_info")
+    assert key_info is not None
+    assert key_info.get("sender_name") == mock_response["sender_name"]
+    assert key_info.get("sender_contact") == mock_response["sender_contact"]
+    assert key_info.get("receiver_name") == mock_response["receiver_name"]
+    assert key_info.get("receiver_contact") == mock_response["receiver_contact"]
+    assert key_info.get("subject") == mock_response["subject"]
     mock_llm.invoke.assert_called_once()
 
 
@@ -98,7 +104,7 @@ def test_extract_and_summarize_json_decode_error(mocker: MockerFixture) -> None:
         "original_email": "This is a test email body.",
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
         "email_path": None,
-        "extracted_entities": None,
+        "key_info": None,
         "summary": None,
         "draft_history": [],
         "current_tone": "professional",
@@ -112,4 +118,4 @@ def test_extract_and_summarize_json_decode_error(mocker: MockerFixture) -> None:
     # Assert
     assert result_state.get("error_message") == "Failed to parse LLM response as JSON."
     assert result_state.get("summary") is None
-    assert result_state.get("extracted_entities") is None
+    assert result_state.get("key_info") is None

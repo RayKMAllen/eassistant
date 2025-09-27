@@ -25,3 +25,4 @@ wheels/
 # Exclude specific file types as requested
 *.pdf
 *.txt
+.vscode/settings.json

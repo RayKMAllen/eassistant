@@ -16,9 +16,11 @@ def mocked_llm_service() -> MagicMock:
     mock_service.invoke.side_effect = [
         json.dumps(
             {
-                "sender": "test@example.com",
+                "sender_name": "Test Sender",
+                "sender_contact": "test@example.com",
+                "receiver_name": "Test Receiver",
+                "receiver_contact": "receiver@example.com",
                 "subject": "Test Subject",
-                "key_points": ["This is a key point."],
                 "summary": "This is a test summary.",
             }
         ),
@@ -49,7 +51,7 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
             "From: test@example.com\nSubject: Test Subject\n\nThis is a test email."
         ),
         email_path=None,
-        extracted_entities=None,
+        key_info=None,
         summary=None,
         draft_history=None,
         current_tone=None,
@@ -63,8 +65,8 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     # 5. Assert the final state is as expected
     assert final_state is not None
     assert final_state["summary"] == "This is a test summary."
-    assert final_state["extracted_entities"] is not None
-    assert final_state["extracted_entities"]["sender"] == "test@example.com"
+    assert final_state["key_info"] is not None
+    assert final_state["key_info"]["sender_contact"] == "test@example.com"
     assert final_state["draft_history"] is not None
     assert len(final_state["draft_history"]) == 1
     assert final_state["draft_history"][0]["content"] == "This is a test draft."

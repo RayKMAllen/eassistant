@@ -5,9 +5,11 @@ from uuid import UUID
 class ExtractedEntities(TypedDict):
     """Structured information extracted from an email."""
 
-    sender: Optional[str]
+    sender_name: Optional[str]
+    sender_contact: Optional[str]
+    receiver_name: Optional[str]
+    receiver_contact: Optional[str]
     subject: Optional[str]
-    key_points: List[str]
 
 
 class Draft(TypedDict):
@@ -28,7 +30,7 @@ class GraphState(TypedDict):
     session_id: UUID
     original_email: Optional[str]
     email_path: Optional[str]
-    extracted_entities: Optional[ExtractedEntities]
+    key_info: Optional[ExtractedEntities]
     summary: Optional[str]
     draft_history: Optional[List[Draft]]
     current_tone: Optional[str]

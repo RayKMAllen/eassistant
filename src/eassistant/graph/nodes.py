@@ -31,13 +31,16 @@ def extract_and_summarize(state: GraphState) -> GraphState:
 
     prompt = f"""
         Analyze the following email and extract the following information:
-        1.  **sender**: The sender's name or email address.
-        2.  **subject**: The subject line of the email.
-        3.  **key_points**: A list of the most important points or questions.
-        4.  **summary**: A concise one-paragraph summary of the entire email.
+        1.  **sender_name**: The sender's name.
+        2.  **sender_contact**: The sender's contact details (email or phone).
+        3.  **receiver_name**: The receiver's name.
+        4.  **receiver_contact**: The receiver's contact details (email or phone).
+        5.  **subject**: The subject line of the email.
+        6.  **summary**: A concise one-paragraph summary of the entire email.
 
-        Return the information as a single, minified JSON object with the keys "sender",
-        "subject", "key_points", and "summary".
+        Return the information as a single, minified JSON object with the
+        keys "sender_name", "sender_contact", "receiver_name",
+        "receiver_contact", "subject", and "summary".
 
         Email content:
         ---
@@ -49,10 +52,12 @@ def extract_and_summarize(state: GraphState) -> GraphState:
         response_text = llm_service.invoke(prompt)
         response_json = json.loads(response_text)
 
-        state["extracted_entities"] = {
-            "sender": response_json.get("sender"),
+        state["key_info"] = {
+            "sender_name": response_json.get("sender_name"),
+            "sender_contact": response_json.get("sender_contact"),
+            "receiver_name": response_json.get("receiver_name"),
+            "receiver_contact": response_json.get("receiver_contact"),
             "subject": response_json.get("subject"),
-            "key_points": response_json.get("key_points", []),
         }
         state["summary"] = response_json.get("summary")
 
@@ -70,7 +75,7 @@ def generate_initial_draft(state: GraphState) -> GraphState:
     """
     print("Generating initial draft...")
     summary = state.get("summary")
-    entities = state.get("extracted_entities")
+    entities = state.get("key_info")
 
     if not summary or not entities:
         state["error_message"] = "Missing summary or entities to generate a draft."
@@ -87,10 +92,10 @@ def generate_initial_draft(state: GraphState) -> GraphState:
         {summary}
         ---
 
-        Key Points to Address:
-        ---
-        - {", ".join(entities.get("key_points", []))}
-        ---
+        Sender: {entities.get("sender_name")} ({entities.get("sender_contact")})
+        Receiver: {entities.get("receiver_name")} ({entities.get("receiver_contact")})
+
+        Subject: {entities.get("subject")}
 
         Draft the email reply below:
     """

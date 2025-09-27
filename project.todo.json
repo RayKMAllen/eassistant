@@ -94,7 +94,7 @@
           "id": "M1.4",
           "name": "Implement `extract_and_summarize` node",
           "dependencies": ["M1.1", "M1.3"],
-          "definition_of_done": "The node calls the LLM service and populates the `extracted_entities` and `summary` fields in the state.",
+          "definition_of_done": "The node calls the LLM service and populates the `key_info` and `summary` fields in the state.",
           "status": "done",
           "completed_at": "2025-09-27T09:35:11.984Z"
         },

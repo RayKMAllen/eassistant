@@ -24,7 +24,7 @@ def shell() -> None:
                 "session_id": "123",
                 "original_email": user_input,
                 "email_path": None,
-                "extracted_entities": None,
+                "key_info": None,
                 "summary": None,
                 "draft_history": [],
                 "current_tone": "professional",

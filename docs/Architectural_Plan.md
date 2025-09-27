@@ -70,7 +70,7 @@ The conversational flow is modeled as a state machine.
 
 -   `original_email`: The raw input email text.
 -   `email_path`: Optional path to the input file (e.g., PDF).
--   `extracted_entities`: A structured object with sender, subject, key points, etc.
+-   `key_info`: A structured object with sender name, sender contact details, receiver name, receiver contact details, subject.
 -   `summary`: A concise summary of the email.
 -   `draft_history`: A list of generated drafts, including the current one.
 -   `current_tone`: The active tone for drafting (e.g., 'professional').
@@ -83,8 +83,8 @@ The conversational flow is modeled as a state machine.
 | Node                 | Input (from State)                               | Output (to State)                                     | Description                                                                 |
 | -------------------- | ------------------------------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------- |
 | `parse_input`        | `original_email`, `email_path`                   | `original_email` (if from PDF)                        | Reads input text or extracts text from a PDF file.                          |
-| `extract_and_summarize` | `original_email`                                 | `extracted_entities`, `summary`                       | Calls the LLM to perform entity extraction and summarization in one step.   |
-| `generate_initial_draft` | `extracted_entities`, `summary`                  | `draft_history` (appends new draft)                   | Creates the first reply draft based on the extracted context.               |
+| `extract_and_summarize` | `original_email`                                 | `key_info`, `summary`                       | Calls the LLM to perform entity extraction and summarization in one step.   |
+| `generate_initial_draft` | `key_info`, `summary`                  | `draft_history` (appends new draft)                   | Creates the first reply draft based on the extracted context.               |
 | `refine_draft`       | `draft_history` (last draft), `user_feedback`    | `draft_history` (appends refined draft)               | Takes user feedback to modify the latest draft (e.g., change tone, content). |
 | `save_draft`         | `draft_history` (last draft)                     | -                                                     | Saves the final draft to the local filesystem or S3.                        |
 | `handle_error`       | `error_message`                                  | -                                                     | Informs the user about an error and provides guidance.                      |
@@ -297,7 +297,7 @@ This section contains the hierarchical task breakdown in a JSON format. This can
           "id": "M1.4",
           "name": "Implement `extract_and_summarize` node",
           "dependencies": ["M1.1", "M1.3"],
-          "definition_of_done": "The node calls the LLM service and populates the `extracted_entities` and `summary` fields in the state."
+          "definition_of_done": "The node calls the LLM service and populates the `key_info` and `summary` fields in the state."
         },
         {
           "id": "M1.5",
