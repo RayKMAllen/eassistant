@@ -86,7 +86,9 @@
           "id": "M1.3",
           "name": "Implement LLM service for Bedrock Claude",
           "dependencies": [],
-          "definition_of_done": "A service class in `eassistant/services/llm.py` can invoke a Claude model on Bedrock and return the response."
+          "definition_of_done": "A service class in `eassistant/services/llm.py` can invoke a Claude model on Bedrock and return the response.",
+          "status": "done",
+          "completed_at": "2025-09-27T09:19:09.138Z"
         },
         {
           "id": "M1.4",
