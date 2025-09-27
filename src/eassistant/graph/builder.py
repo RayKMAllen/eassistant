@@ -3,10 +3,18 @@ from langgraph.graph import END, StateGraph
 from .nodes import (
     extract_and_summarize,
     generate_initial_draft,
+    handle_error,
     parse_input,
     refine_draft,
 )
 from .state import GraphState
+
+
+def check_for_errors(state: GraphState) -> str:
+    """If an error is present, route to the error handler. Otherwise, continue."""
+    if state.get("error_message"):
+        return "handle_error"
+    return "continue"
 
 
 def route_initial_request(state: GraphState) -> str:
@@ -31,6 +39,7 @@ def build_graph() -> StateGraph:
     workflow.add_node("extract_and_summarize", extract_and_summarize)
     workflow.add_node("generate_initial_draft", generate_initial_draft)
     workflow.add_node("refine_draft", refine_draft)
+    workflow.add_node("handle_error", handle_error)
 
     # Define control flow
     workflow.set_conditional_entry_point(
@@ -41,12 +50,30 @@ def build_graph() -> StateGraph:
         },
     )
 
-    workflow.add_edge("parse_input", "extract_and_summarize")
-    workflow.add_edge("extract_and_summarize", "generate_initial_draft")
+    # Each step checks for errors. If an error is found, it goes to the error
+    # handler. Otherwise, it proceeds to the next step.
+    workflow.add_conditional_edges(
+        "parse_input",
+        check_for_errors,
+        {"continue": "extract_and_summarize", "handle_error": "handle_error"},
+    )
+    workflow.add_conditional_edges(
+        "extract_and_summarize",
+        check_for_errors,
+        {"continue": "generate_initial_draft", "handle_error": "handle_error"},
+    )
+    workflow.add_conditional_edges(
+        "generate_initial_draft",
+        check_for_errors,
+        {"continue": END, "handle_error": "handle_error"},
+    )
+    workflow.add_conditional_edges(
+        "refine_draft",
+        check_for_errors,
+        {"continue": END, "handle_error": "handle_error"},
+    )
 
-    # After generating or refining, the process ends for this turn,
-    # waiting for the next user input from the CLI.
-    workflow.add_edge("generate_initial_draft", END)
-    workflow.add_edge("refine_draft", END)
+    # After an error is handled, the graph ends.
+    workflow.add_edge("handle_error", END)
 
     return workflow.compile()

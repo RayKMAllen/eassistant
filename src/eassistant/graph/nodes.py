@@ -220,3 +220,15 @@ def save_draft(state: GraphState) -> GraphState:
         state["error_message"] = f"Failed to save draft: {e}"
 
     return state
+
+
+def handle_error(state: GraphState) -> GraphState:
+    """
+    Handles errors by printing a user-friendly message.
+    Clears the error message from the state after handling.
+    """
+    error_message = state.get("error_message")
+    if error_message:
+        print(f"An error occurred: {error_message}")
+        state["error_message"] = None  # Clear the error
+    return state

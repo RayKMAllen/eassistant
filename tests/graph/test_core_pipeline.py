@@ -259,3 +259,47 @@ def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None
         mock_path.assert_called_with("dummy/test.pdf")
         mock_extract.assert_called_with(mock_path.return_value)
         assert mocked_llm_service.invoke.call_count == 2
+
+
+def test_error_handling_integration(capsys) -> None:
+    """
+    Integration test for the M3 error handling pipeline.
+
+    It verifies that if a node raises an exception, the graph routes
+    to the handle_error node and terminates gracefully.
+    """
+    # 1. Arrange: Mock the LLM service to raise an exception
+    from eassistant.graph import nodes
+
+    mock_llm = MagicMock(spec=LLMService)
+    error_message = "LLM is down!"
+    mock_llm.invoke.side_effect = Exception(error_message)
+    nodes.llm_service = mock_llm
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define the initial state
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        original_email="A test email that will cause a failure.",
+        draft_history=[],
+        user_feedback=None,
+        error_message=None,
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert the final state and output
+    assert final_state is not None
+    # The error message should be cleared by the handle_error node
+    assert final_state.get("error_message") is None
+
+    # 6. Verify that the error message was printed to the console
+    captured = capsys.readouterr()
+    # The error is caught in extract_and_summarize and wrapped
+    expected_output = "An error occurred: An unexpected error occurred: LLM is down!"
+    assert expected_output in captured.out
+    # Verify the LLM was called once (and failed)
+    mock_llm.invoke.assert_called_once()

@@ -6,6 +6,7 @@ from pytest_mock import MockerFixture
 from eassistant.graph.nodes import (
     extract_and_summarize,
     generate_initial_draft,
+    handle_error,
     parse_input,
     refine_draft,
     save_draft,
@@ -291,3 +292,30 @@ def test_save_draft_no_history() -> None:
 
     # Assert
     assert result_state.get("error_message") == "No draft to save."
+
+
+def test_handle_error(capsys) -> None:
+    """
+    Tests that the handle_error node prints the error message from the state.
+    """
+    # Arrange
+    error_message = "Something went wrong!"
+    initial_state: GraphState = {
+        "error_message": error_message,
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": "",
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+    }
+
+    # Act
+    result_state = handle_error(initial_state)
+
+    # Assert
+    captured = capsys.readouterr()
+    assert f"An error occurred: {error_message}" in captured.out
+    assert result_state.get("error_message") is None  # Error should be cleared
