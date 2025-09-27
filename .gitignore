@@ -26,3 +26,5 @@ wheels/
 *.pdf
 *.txt
 .vscode/settings.json
+
+.roo/
