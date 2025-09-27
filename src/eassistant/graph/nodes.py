@@ -133,3 +133,57 @@ def generate_initial_draft(state: GraphState) -> GraphState:
         state["error_message"] = f"Failed to generate draft: {e}"
 
     return state
+
+
+def refine_draft(state: GraphState) -> GraphState:
+    """
+    Refines an existing draft based on user feedback.
+    """
+    print("Refining draft...")
+    draft_history = state.get("draft_history")
+    user_feedback = state.get("user_feedback")
+    current_tone = state.get("current_tone") or "professional"
+
+    if not draft_history:
+        state["error_message"] = "No draft to refine."
+        return state
+
+    if not user_feedback:
+        state["error_message"] = "No user feedback provided to refine the draft."
+        return state
+
+    latest_draft = draft_history[-1]["content"]
+
+    prompt = f"""
+        A user wants to refine an email draft.
+
+        Original Draft:
+        ---
+        {latest_draft}
+        ---
+
+        User Feedback:
+        ---
+        {user_feedback}
+        ---
+
+        Current Tone: {current_tone}
+
+        Please generate a new version of the draft that incorporates the user's
+        feedback and maintains the specified tone.
+    """
+
+    try:
+        refined_content = llm_service.invoke(prompt)
+        new_draft: Draft = {
+            "content": refined_content,
+            "tone": current_tone,
+        }
+        draft_history.append(new_draft)
+        state["draft_history"] = draft_history
+        state["user_feedback"] = None  # Clear feedback after using it
+
+    except Exception as e:
+        state["error_message"] = f"Failed to refine draft: {e}"
+
+    return state

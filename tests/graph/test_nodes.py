@@ -7,6 +7,7 @@ from eassistant.graph.nodes import (
     extract_and_summarize,
     generate_initial_draft,
     parse_input,
+    refine_draft,
 )
 from eassistant.graph.state import GraphState
 
@@ -184,3 +185,46 @@ def test_parse_input_with_pdf(mocker: MockerFixture, tmp_path) -> None:
     # Assert
     assert result_state["original_email"] == pdf_content
     assert result_state["email_path"] == str(pdf_file)
+
+
+def test_refine_draft_success(mocker: MockerFixture) -> None:
+    """
+    Tests the happy path for the refine_draft node.
+    """
+    # Arrange
+    mock_refined_content = "This is the refined draft."
+    mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
+    mock_llm.invoke.return_value = mock_refined_content
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "key_info": {
+            "sender_name": "Test Sender",
+            "sender_contact": "sender@example.com",
+            "receiver_name": "Test Receiver",
+            "receiver_contact": "receiver@example.com",
+            "subject": "Test Subject",
+        },
+        "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [
+            {"content": "This is the first draft.", "tone": "professional"}
+        ],
+        "current_tone": "professional",
+        "user_feedback": "Make it more friendly.",
+        "error_message": None,
+    }
+
+    # Act
+    result_state = refine_draft(initial_state)
+
+    # Assert
+    assert result_state.get("error_message") is None
+    draft_history = result_state.get("draft_history")
+    assert draft_history is not None
+    assert len(draft_history) == 2
+    latest_draft = draft_history[-1]
+    assert latest_draft["content"] == mock_refined_content
+    assert latest_draft["tone"] == "professional"
+    mock_llm.invoke.assert_called_once()

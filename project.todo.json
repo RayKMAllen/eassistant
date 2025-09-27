@@ -150,7 +150,9 @@
           "id": "M2.3",
           "name": "Implement `refine_draft` node",
           "dependencies": ["M1.1", "M1.3"],
-          "definition_of_done": "The node takes `user_feedback` and the latest draft to generate a new version."
+          "definition_of_done": "The node takes `user_feedback` and the latest draft to generate a new version.",
+          "status": "done",
+          "completed_at": "2025-09-27T12:27:44.086Z"
         },
         {
           "id": "M2.4",
