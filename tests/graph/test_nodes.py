@@ -8,6 +8,7 @@ from eassistant.graph.nodes import (
     generate_initial_draft,
     parse_input,
     refine_draft,
+    save_draft,
 )
 from eassistant.graph.state import GraphState
 
@@ -228,3 +229,65 @@ def test_refine_draft_success(mocker: MockerFixture) -> None:
     assert latest_draft["content"] == mock_refined_content
     assert latest_draft["tone"] == "professional"
     mock_llm.invoke.assert_called_once()
+
+
+def test_save_draft_success(mocker: MockerFixture) -> None:
+    """
+    Tests the happy path for the save_draft node.
+    """
+    # Arrange
+    mock_storage = mocker.patch("eassistant.graph.nodes.storage_service")
+    initial_state: GraphState = {
+        "draft_history": [
+            {"content": "This is the first draft.", "tone": "professional"},
+            {"content": "This is the final draft.", "tone": "friendly"},
+        ],
+        "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "original_email": "Test email",
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "current_tone": "friendly",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = save_draft(initial_state)
+
+    # Assert
+    assert result_state.get("error_message") is None
+    mock_storage.save.assert_called_once()
+    # Get the arguments passed to the mock
+    args, kwargs = mock_storage.save.call_args
+    assert kwargs.get("content") == "This is the final draft."
+    file_path = kwargs.get("file_path")
+    assert file_path is not None
+    # Normalize path separators for OS-agnostic check
+    normalized_path = file_path.replace("\\", "/")
+    assert "outputs/draft-" in normalized_path
+    assert ".txt" in normalized_path
+
+
+def test_save_draft_no_history() -> None:
+    """
+    Tests that the save_draft node handles the case where there is no draft history.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "draft_history": [],
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": "",
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = save_draft(initial_state)
+
+    # Assert
+    assert result_state.get("error_message") == "No draft to save."

@@ -1,13 +1,16 @@
 import json
+from datetime import datetime
 from pathlib import Path
 
 from ..services.llm import LLMService
+from ..services.storage import StorageService
 from ..utils.files import extract_text_from_pdf
 from .state import Draft, GraphState
 
-# Use a single, module-level instance for the LLM service.
+# Use single, module-level instances for services.
 # This allows for easier mocking during tests.
 llm_service = LLMService()
+storage_service = StorageService()
 
 
 def parse_input(state: GraphState) -> GraphState:
@@ -185,5 +188,35 @@ def refine_draft(state: GraphState) -> GraphState:
 
     except Exception as e:
         state["error_message"] = f"Failed to refine draft: {e}"
+
+    return state
+
+
+def save_draft(state: GraphState) -> GraphState:
+    """
+    Saves the latest draft to a file using the StorageService.
+    """
+    print("Saving draft...")
+    draft_history = state.get("draft_history")
+
+    if not draft_history:
+        state["error_message"] = "No draft to save."
+        return state
+
+    latest_draft = draft_history[-1]["content"]
+
+    # Generate a filename with a timestamp
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    filename = f"draft-{timestamp}.txt"
+
+    # For now, save to a local 'outputs' directory.
+    # This could be configured later.
+    output_path = Path("outputs") / filename
+
+    try:
+        storage_service.save(content=latest_draft, file_path=str(output_path))
+        print(f"Draft saved to {output_path}")
+    except Exception as e:
+        state["error_message"] = f"Failed to save draft: {e}"
 
     return state
