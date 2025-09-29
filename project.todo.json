@@ -406,7 +406,8 @@
             "M2.12"
           ],
           "definition_of_done": "All existing tests in the suite pass reliably. Any and all intermittent failures are investigated and permanently resolved.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T13:15:02.202Z"
         },
         {
           "id": "M4.4",
