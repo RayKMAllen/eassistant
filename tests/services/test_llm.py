@@ -59,6 +59,30 @@ def test_llm_service_invoke_empty_response(mocker: MockerFixture) -> None:
     assert response == ""
 
 
+def test_llm_service_invoke_malformed_response(mocker: MockerFixture) -> None:
+    """
+    Tests that the LLMService handles a response with a missing 'text' key.
+    """
+    # Arrange
+    mock_boto_client = MagicMock()
+    mocker.patch("boto3.client", return_value=mock_boto_client)
+
+    prompt = "Hello, world!"
+    # Malformed response: 'content' item is not a text block
+    mock_response_body = {"content": [{"type": "image", "source": "..."}]}
+    mock_response = {
+        "body": MagicMock(read=lambda: json.dumps(mock_response_body).encode("utf-8"))
+    }
+    mock_boto_client.invoke_model.return_value = mock_response
+
+    # Act
+    llm_service = LLMService()
+    response = llm_service.invoke(prompt)
+
+    # Assert
+    assert response == ""
+
+
 def test_llm_service_invoke_boto_error(mocker: MockerFixture) -> None:
     """
     Tests that the LLMService propagates exceptions from the boto3 client.

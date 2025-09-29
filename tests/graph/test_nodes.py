@@ -42,6 +42,8 @@ from eassistant.graph.state import GraphState
         ("make it better", True, "refine_draft", None, "make it better"),
         ("new", True, "reset_session", None, None),
         ("gibberish", False, "unclear", None, None),
+        ("", False, "unclear", None, None),  # Empty input
+        ("   ", False, "unclear", None, None),  # Whitespace input
     ],
 )
 def test_route_action(
@@ -112,6 +114,37 @@ def test_route_action_handles_json_decode_error(mocker: MockerFixture) -> None:
     # Assert
     assert result_state["intent"] == "unclear"
     assert "Error during intent routing" in result_state["error_message"]
+
+
+def test_route_action_llm_exception(mocker: MockerFixture) -> None:
+    """
+    Tests that route_action handles exceptions from the LLM service.
+    """
+    # Arrange
+    mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
+    error_message = "LLM is down"
+    mock_llm.invoke.side_effect = Exception(error_message)
+    initial_state: GraphState = {
+        "user_input": "some input",
+        "draft_history": [],
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+        "conversation_summary": None,
+    }
+
+    # Act
+    result_state = route_action(initial_state)
+
+    # Assert
+    assert result_state["intent"] == "unclear"
+    assert error_message in result_state["error_message"]
 
 
 def test_show_info_success(capsys) -> None:
@@ -205,6 +238,30 @@ def test_reset_session() -> None:
     assert result_state["summary"] is None
     assert result_state["draft_history"] == []
     assert result_state["intent"] is None
+
+
+def test_reset_session_no_session_id() -> None:
+    """
+    Tests that reset_session raises a ValueError if the session_id is missing.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "session_id": None,  # type: ignore
+        "user_input": "new",
+        "original_email": "some email",
+        "summary": "a summary",
+        "draft_history": [{"content": "a draft", "tone": "casual"}],
+        "intent": "reset_session",
+        "email_path": None,
+        "key_info": None,
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act & Assert
+    with pytest.raises(ValueError, match="Session ID is missing"):
+        reset_session(initial_state)
 
 
 def test_handle_unclear(capsys) -> None:
@@ -417,6 +474,91 @@ def test_parse_input_with_pdf(mocker: MockerFixture, tmp_path) -> None:
     # Assert
     assert result_state["original_email"] == pdf_content
     assert result_state["email_path"] == str(pdf_file)
+
+
+def test_parse_input_with_non_pdf_file(tmp_path) -> None:
+    """
+    Tests that a non-PDF file is treated as plain text.
+    """
+    # Arrange
+    txt_file = tmp_path / "test.txt"
+    txt_file.write_text("This is a text file.")
+
+    initial_state: GraphState = {
+        "original_email": str(txt_file),
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = parse_input(initial_state)
+
+    # Assert
+    assert result_state["original_email"] == str(txt_file)
+    assert result_state["email_path"] is None
+
+
+def test_parse_input_not_a_file_path() -> None:
+    """
+    Tests that a sentence with a period is not treated as a file path.
+    """
+    # Arrange
+    input_text = "This is a sentence. It is not a file."
+    initial_state: GraphState = {
+        "original_email": input_text,
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = parse_input(initial_state)
+
+    # Assert
+    assert result_state["original_email"] == input_text
+    assert result_state["email_path"] is None
+
+
+def test_parse_input_pdf_not_found(tmp_path) -> None:
+    """
+    Tests that parse_input handles a non-existent PDF file path.
+    """
+    # Arrange
+    non_existent_file = tmp_path / "ghost.pdf"
+    initial_state: GraphState = {
+        "original_email": str(non_existent_file),
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = parse_input(initial_state)
+
+    # Assert
+    assert f"File not found: {non_existent_file}" in result_state["error_message"]
 
 
 def test_refine_draft_success(mocker: MockerFixture) -> None:
@@ -916,6 +1058,36 @@ def test_ask_for_tone_no_input_defaults_to_professional(
 
     # Assert
     assert result_state["current_tone"] == "professional"
+
+
+def test_ask_for_tone_user_cancellation(mocker: MockerFixture) -> None:
+    """
+    Tests that ask_for_tone handles user cancellation (e.g., Ctrl+C).
+    """
+    # Arrange
+    mock_console = mocker.patch("eassistant.graph.nodes.console")
+    mock_console.input.side_effect = KeyboardInterrupt
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "key_info": {"sender_name": "Test Sender"},
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": None,
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = ask_for_tone(initial_state)
+
+    # Assert
+    assert result_state["current_tone"] == "professional"  # Defaults on cancel
+    assert result_state["error_message"] == "User cancelled the operation."
 
 
 def test_handle_idle_chat(capsys) -> None:
