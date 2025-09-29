@@ -30,6 +30,38 @@ def get_initial_state(session_id: uuid.UUID) -> GraphState:
     }
 
 
+def _display_summary(console: Console, state: GraphState) -> None:
+    """Displays the extracted key info and summary."""
+    key_info = state.get("key_info")
+    summary = state.get("summary")
+
+    if not key_info or not summary:
+        console.print("[bold yellow]No information extracted yet.[/bold yellow]")
+        return
+
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column(style="cyan")
+    table.add_column()
+
+    table.add_row("Sender:", key_info.get("sender_name", "N/A"))
+    table.add_row("Sender Contact:", key_info.get("sender_contact", "N/A"))
+    table.add_row("Recipient:", key_info.get("receiver_name", "N/A"))
+    table.add_row("Recipient Contact:", key_info.get("receiver_contact", "N/A"))
+    table.add_row("Subject:", key_info.get("subject", "N/A"))
+
+    summary_panel = Panel(
+        summary,
+        title="[bold]Summary[/bold]",
+        border_style="green",
+        expand=False,
+    )
+
+    console.print("\n[bold green]-- Extracted Information --[/bold green]")
+    console.print(table)
+    console.print(summary_panel)
+    console.print("[bold green]---------------------------[/bold green]\n")
+
+
 @app.command()  # type: ignore
 def shell() -> None:
     """Starts the e-assistant interactive shell."""
@@ -39,7 +71,7 @@ def shell() -> None:
 
     graph = build_graph()
     session_id = uuid.uuid4()
-    state = get_initial_state(session_id)
+    state: GraphState = get_initial_state(session_id)
 
     while True:
         try:
@@ -59,6 +91,10 @@ def shell() -> None:
                 console.print(
                     "[cyan]Resetting session. Please enter new email content.[/cyan]"
                 )
+                continue
+
+            if user_input.lower() == "show info":
+                _display_summary(console, state)
                 continue
 
             if user_input.lower().startswith("save"):
@@ -113,34 +149,7 @@ def shell() -> None:
 
                 # If we just generated the first draft, show the summary that led to it.
                 if is_first_draft:
-                    key_info = state.get("key_info")
-                    summary = state.get("summary")
-                    if key_info and summary:
-                        table = Table(show_header=False, box=None, padding=(0, 1))
-                        table.add_column(style="cyan")
-                        table.add_column()
-
-                        table.add_row("Sender:", key_info.get("sender_name", "N/A"))
-                        table.add_row(
-                            "Recipient:", key_info.get("receiver_name", "N/A")
-                        )
-                        table.add_row("Subject:", key_info.get("subject", "N/A"))
-
-                        summary_panel = Panel(
-                            summary,
-                            title="[bold]Summary[/bold]",
-                            border_style="green",
-                            expand=False,
-                        )
-
-                        console.print(
-                            "\n[bold green]-- Extracted Information --[/bold green]"
-                        )
-                        console.print(table)
-                        console.print(summary_panel)
-                        console.print(
-                            "[bold green]---------------------------[/bold green]\n"
-                        )
+                    _display_summary(console, state)
 
                 draft_history = state.get("draft_history")
                 if draft_history:

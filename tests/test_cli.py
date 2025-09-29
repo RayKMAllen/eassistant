@@ -212,3 +212,48 @@ def test_shell_save_command_no_filename(mock_graph):
         assert result.exception is None
         assert "Usage: save <filename>" in result.stdout
         mock_storage.save.assert_not_called()
+
+
+def test_shell_show_info_command(mock_graph):
+    """Test the 'show info' command."""
+    with patch("eassistant.cli.build_graph", return_value=mock_graph):
+        # First, simulate a state where info has been extracted
+        mock_graph.invoke.return_value = {
+            "key_info": {
+                "sender_name": "John Doe",
+                "sender_contact": "john.doe@email.com",
+                "receiver_name": "Jane Smith",
+                "receiver_contact": "jane.smith@email.com",
+                "subject": "Important Info",
+            },
+            "summary": "This is a summary.",
+            "draft_history": [{"content": "A draft exists."}],
+        }
+
+        user_input = "initial email\nshow info\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert result.exception is None
+        assert "-- Extracted Information --" in result.stdout
+        assert "Sender Contact:" in result.stdout
+        assert "john.doe@email.com" in result.stdout
+        assert "This is a summary." in result.stdout
+
+
+def test_shell_show_info_command_no_info(mock_graph):
+    """Test the 'show info' command when no info is available."""
+    with patch("eassistant.cli.build_graph", return_value=mock_graph):
+        # Simulate a state before any info has been extracted
+        mock_graph.invoke.return_value = {
+            "key_info": None,
+            "summary": None,
+            "draft_history": [],
+        }
+
+        user_input = "show info\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert result.exception is None
+        assert "No information extracted yet." in result.stdout

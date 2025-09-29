@@ -375,6 +375,16 @@
           "definition_of_done": "A console script entrypoint 'eassistant' is configured in pyproject.toml, allowing the application to be run directly from the command line.",
           "status": "done",
           "completed_at": "2025-09-29T10:02:04.795Z"
+        },
+        {
+          "id": "M4.7",
+          "name": "Allow user to request key info and summary display",
+          "dependencies": [
+            "M1.4"
+          ],
+          "definition_of_done": "A user command (e.g., 'show info') is implemented that, when called after the initial extraction, displays the current key_info and summary. The key_info extraction logic is updated to include sender/receiver contact details (email/phone) if available, not just names.",
+          "status": "done",
+          "completed_at": "2025-09-29T10:12:25.237Z"
         }
       ]
     },
