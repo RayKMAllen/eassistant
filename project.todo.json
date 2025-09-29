@@ -357,7 +357,8 @@
           "name": "Implement 'ask_for_tone' node",
           "dependencies": [],
           "definition_of_done": "A new 'ask_for_tone' node is added to the graph. The graph flow is updated to ask the user for a desired tone (e.g., formal, casual) and incorporates this into the draft generation prompt.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T09:42:15.150Z"
         },
         {
           "id": "M4.5",

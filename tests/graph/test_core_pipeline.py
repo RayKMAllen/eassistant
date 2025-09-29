@@ -29,6 +29,12 @@ def mocked_llm_service() -> MagicMock:
     return mock_service
 
 
+def mocked_ask_for_tone(state: GraphState) -> GraphState:
+    """A mock version of ask_for_tone that bypasses user input."""
+    state["current_tone"] = "professional"
+    return state
+
+
 def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     """
     Integration test for the M1 core pipeline.
@@ -37,9 +43,10 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     extracts information, summarizes, and generates a draft using a mocked LLM.
     """
     # 1. Replace the actual LLMService with our mock
-    from eassistant.graph import nodes
+    from eassistant.graph import builder, nodes
 
     nodes.llm_service = mocked_llm_service
+    builder.ask_for_tone = mocked_ask_for_tone
 
     # 2. Build the graph
     app = build_graph()
@@ -53,7 +60,7 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
         email_path=None,
         key_info=None,
         summary=None,
-        draft_history=None,
+        draft_history=[],
         current_tone=None,
         user_feedback=None,
         error_message=None,
@@ -83,9 +90,10 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     refinement node and generate a new draft.
     """
     # 1. Arrange: Set up the mocked LLM service for a two-turn conversation
-    from eassistant.graph import nodes
+    from eassistant.graph import builder, nodes
 
     nodes.llm_service = mocked_llm_service
+    builder.ask_for_tone = mocked_ask_for_tone
     mocked_llm_service.invoke.side_effect = [
         json.dumps(
             {
@@ -149,15 +157,30 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
     and the state is correctly managed.
     """
     # 1. Arrange: Set up the mocked LLM for two separate email flows
-    from eassistant.graph import nodes
+    from eassistant.graph import builder, nodes
 
     nodes.llm_service = mocked_llm_service
+    builder.ask_for_tone = mocked_ask_for_tone
     mocked_llm_service.invoke.side_effect = [
         # First email
-        json.dumps({"summary": "First email summary."}),
+        json.dumps(
+            {
+                "summary": "First email summary.",
+                "sender_name": "User1",
+                "receiver_name": "Support",
+                "subject": "Query",
+            }
+        ),
         "First email draft.",
         # Second email
-        json.dumps({"summary": "Second email summary."}),
+        json.dumps(
+            {
+                "summary": "Second email summary.",
+                "sender_name": "User2",
+                "receiver_name": "Sales",
+                "subject": "Inquiry",
+            }
+        ),
         "Second email draft.",
     ]
 
@@ -223,9 +246,10 @@ def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None
         mock_extract.return_value = "This is the extracted PDF text."
 
         # 2. Replace the actual LLMService with our mock
-        from eassistant.graph import nodes
+        from eassistant.graph import builder, nodes
 
         nodes.llm_service = mocked_llm_service
+        builder.ask_for_tone = mocked_ask_for_tone
 
         # 3. Build the graph
         app = build_graph()

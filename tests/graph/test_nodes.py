@@ -4,6 +4,7 @@ from uuid import UUID
 from pytest_mock import MockerFixture
 
 from eassistant.graph.nodes import (
+    ask_for_tone,
     extract_and_summarize,
     generate_initial_draft,
     handle_error,
@@ -597,3 +598,60 @@ def test_save_draft_storage_exception(mocker: MockerFixture) -> None:
     assert f"Failed to save draft: {error_message}" in str(
         result_state["error_message"]
     )
+
+
+def test_ask_for_tone_with_input(mocker: MockerFixture) -> None:
+    """
+    Tests that ask_for_tone correctly captures user input.
+    """
+    # Arrange
+    mock_console = mocker.patch("eassistant.graph.nodes.console")
+    mock_console.input.return_value = "casual"
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "key_info": {"sender_name": "Test Sender"},
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": None,
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = ask_for_tone(initial_state)
+
+    # Assert
+    assert result_state["current_tone"] == "casual"
+    mock_console.input.assert_called_once()
+
+
+def test_ask_for_tone_no_input_defaults_to_professional(
+    mocker: MockerFixture,
+) -> None:
+    """
+    Tests that ask_for_tone defaults to 'professional' when no input is given.
+    """
+    # Arrange
+    mock_console = mocker.patch("eassistant.graph.nodes.console")
+    mock_console.input.return_value = ""  # Simulate user pressing Enter
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "key_info": {"sender_name": "Test Sender"},
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": None,
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = ask_for_tone(initial_state)
+
+    # Assert
+    assert result_state["current_tone"] == "professional"

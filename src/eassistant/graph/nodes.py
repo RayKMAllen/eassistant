@@ -2,6 +2,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
+from rich.console import Console
+from rich.panel import Panel
+
 from ..services.llm import LLMService
 from ..services.storage import StorageService
 from ..utils.files import extract_text_from_pdf
@@ -11,6 +14,7 @@ from .state import Draft, GraphState
 # This allows for easier mocking during tests.
 llm_service = LLMService()
 storage_service = StorageService()
+console = Console()
 
 
 def parse_input(state: GraphState) -> GraphState:
@@ -97,6 +101,50 @@ def extract_and_summarize(state: GraphState) -> GraphState:
     return state
 
 
+def ask_for_tone(state: GraphState) -> GraphState:
+    """
+    Asks the user for the desired tone of the email draft.
+    """
+    print("\n---")
+    key_info = state.get("key_info")
+    summary = state.get("summary")
+
+    if key_info:
+        info_panel = Panel(
+            f"[bold]To:[/bold] {key_info.get('sender_name', 'N/A')}\n"
+            f"[bold]From:[/bold] {key_info.get('receiver_name', 'N/A')}\n"
+            f"[bold]Subject:[/bold] {key_info.get('subject', 'N/A')}",
+            title="Extracted Information",
+            border_style="green",
+        )
+        console.print(info_panel)
+
+    if summary:
+        summary_panel = Panel(
+            summary,
+            title="Summary",
+            border_style="blue",
+        )
+        console.print(summary_panel)
+
+    try:
+        prompt = (
+            "Enter the desired tone for the draft (e.g., formal, casual, "
+            "friendly) [default: professional]: "
+        )
+        tone = console.input(prompt)
+        state["current_tone"] = tone.strip() if tone.strip() else "professional"
+    except (KeyboardInterrupt, EOFError):
+        # Handle Ctrl+C or Ctrl+D gracefully
+        print("\nOperation cancelled by user.")
+        state["error_message"] = "User cancelled the operation."
+        state["current_tone"] = "professional"  # Default on cancel
+
+    console.print(f"Tone set to: [bold cyan]{state['current_tone']}[/bold cyan]")
+    print("---\n")
+    return state
+
+
 def generate_initial_draft(state: GraphState) -> GraphState:
     """
     Generates an initial email draft based on the extracted summary and entities.
@@ -104,6 +152,7 @@ def generate_initial_draft(state: GraphState) -> GraphState:
     print("Generating initial draft...")
     summary = state.get("summary")
     entities = state.get("key_info")
+    tone = state.get("current_tone") or "professional"
 
     if not summary or not entities:
         state["error_message"] = "Missing summary or entities to generate a draft."
@@ -111,7 +160,7 @@ def generate_initial_draft(state: GraphState) -> GraphState:
 
     prompt = f"""
         Based on the following summary and extracted entities from an email,
-        write a professional and helpful reply.
+        write a helpful reply with a "{tone}" tone.
 
         The reply should be concise and address all key points.
 
