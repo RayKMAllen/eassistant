@@ -760,9 +760,14 @@ def test_conversational_cloud_save_integration(
     nodes.llm_service = mocked_llm_service
 
     # 2. Mock the StorageService to intercept the save call
-    with patch.object(
-        nodes, "storage_service", spec=StorageService
-    ) as mocked_storage_service:
+    with (
+        patch.object(
+            nodes, "storage_service", spec=StorageService
+        ) as mocked_storage_service,
+        patch("eassistant.graph.nodes.config") as mocked_config,
+    ):
+        # Configure the mock to return the expected bucket name for the test
+        mocked_config.__getitem__.return_value = "my-email-assistant-drafts"
         # 3. Build the graph
         app = build_graph()
 

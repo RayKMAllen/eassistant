@@ -515,7 +515,8 @@
             "M7"
           ],
           "definition_of_done": "The entire test suite runs successfully with no failures.",
-          "status": "blocked"
+          "status": "done",
+          "completed_at": "2025-09-29T15:19:33.293Z"
         }
       ]
     },
