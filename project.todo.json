@@ -270,7 +270,9 @@
             "M2.9",
             "M2.10"
           ],
-          "definition_of_done": "The `eassistant/graph/builder.py` is updated to use `route_action` as the entry point and correctly routes to all nodes, including `handle_idle_chat`."
+          "definition_of_done": "The `eassistant/graph/builder.py` is updated to use `route_action` as the entry point and correctly routes to all nodes, including `handle_idle_chat`.",
+          "status": "done",
+          "completed_at": "2025-09-29T12:43:00.995Z"
         },
         {
           "id": "M2.12",

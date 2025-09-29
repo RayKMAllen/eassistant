@@ -5,6 +5,7 @@ from .nodes import (
     extract_and_summarize,
     generate_initial_draft,
     handle_error,
+    handle_idle_chat,
     handle_unclear,
     parse_input,
     refine_draft,
@@ -36,6 +37,8 @@ def route_by_intent(state: GraphState) -> str:
         return "save_draft"
     if intent == "reset_session":
         return "reset_session"
+    if intent == "handle_idle_chat":
+        return "handle_idle_chat"
     return "handle_unclear"
 
 
@@ -57,6 +60,7 @@ def build_graph() -> StateGraph:
     workflow.add_node("reset_session", reset_session)
     workflow.add_node("handle_unclear", handle_unclear)
     workflow.add_node("handle_error", handle_error)
+    workflow.add_node("handle_idle_chat", handle_idle_chat)
 
     # Set the entry point to the intent router
     workflow.set_entry_point("route_action")
@@ -71,6 +75,7 @@ def build_graph() -> StateGraph:
             "show_info": "show_info",
             "save_draft": "save_draft",
             "reset_session": "reset_session",
+            "handle_idle_chat": "handle_idle_chat",
             "handle_unclear": "handle_unclear",
         },
     )
@@ -108,5 +113,6 @@ def build_graph() -> StateGraph:
     workflow.add_edge("reset_session", END)
     workflow.add_edge("handle_unclear", END)
     workflow.add_edge("handle_error", END)
+    workflow.add_edge("handle_idle_chat", END)
 
     return workflow.compile()
