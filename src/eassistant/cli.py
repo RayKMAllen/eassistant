@@ -24,6 +24,7 @@ def get_initial_state(session_id: uuid.UUID) -> GraphState:
         "user_feedback": None,
         "error_message": None,
         "intent": None,
+        "save_target": None,
         "conversation_summary": None,
     }
 

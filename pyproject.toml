@@ -48,5 +48,9 @@ follow_imports = "skip"
 # We enable strict checking for specific modules that are fully typed
 overrides = [
     { module = "eassistant.graph.state", strict = true },
+    { module = "eassistant.models", strict = true },
     { module = "tests.*", strict = false, ignore_errors = true },
 ]
+
+[tool.pydantic-mypy]
+init_for_subclass = true

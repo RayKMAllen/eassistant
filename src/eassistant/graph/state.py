@@ -38,5 +38,6 @@ class GraphState(TypedDict):
     current_tone: Optional[str]
     user_feedback: Optional[str]
     error_message: Optional[str]
+    save_target: Optional[str]  # e.g., 'local', 's3'
     # A running summary of the conversation for context-aware routing.
     conversation_summary: Optional[str]

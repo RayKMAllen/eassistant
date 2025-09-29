@@ -534,7 +534,8 @@
             "M2.10"
           ],
           "definition_of_done": "The LLM prompt for the 'route_action' node is updated with examples to extract a `save_target` (e.g., 'local', 's3') from conversational input. The Pydantic model used for extraction is updated with an optional `save_target` field.",
-          "status": "todo"
+          "status": "done",
+          "completed_at": "2025-09-29T14:41:31.051Z"
         },
         {
           "id": "M7.2",

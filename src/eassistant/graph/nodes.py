@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from ..models import RouteActionOutput
 from ..services.llm import LLMService
 from ..services.storage import StorageService
 from ..utils.files import extract_text_from_pdf
@@ -49,7 +50,10 @@ def route_action(state: GraphState) -> GraphState:
 
     prompt = f"""
         Based on the provided context and user input, classify the user's
-        primary intent into ONE of the following categories:
+        primary intent and extract any relevant parameters.
+
+        **1. Classify the Intent:**
+        Choose ONE of the following categories for the user's primary intent:
         - process_new_email: User wants to start a new email, either by
           providing raw text or by asking to load a file (e.g.,
           'load my_document.pdf').
@@ -60,26 +64,39 @@ def route_action(state: GraphState) -> GraphState:
         - handle_idle_chat: User is making small talk or asking for help.
         - unclear: The intent cannot be determined.
 
-        Here are some examples of user input and the correct classification:
-        - User input: "load report.pdf" -> Intent: "process_new_email"
-        - User input: "Can you look at C:\\Users\\Me\\file.pdf"
-          -> Intent: "process_new_email"
-        - User input: "make it more formal" -> Intent: "refine_draft"
-        - User input: "show me the summary again" -> Intent: "show_info"
+        **2. Extract Save Target (if applicable):**
+        If the intent is 'save_draft', determine the storage target.
+        - If the user mentions 'cloud', 's3', or 'online', set 'save_target' to 's3'.
+        - Otherwise, set 'save_target' to 'local'.
 
-        Context:
+        **3. Examples:**
+        - User: "load report.pdf"
+          Output: {{"intent": "process_new_email"}}
+        - User: "make it more formal"
+          Output: {{"intent": "refine_draft"}}
+        - User: "save this for me"
+          Output: {{"intent": "save_draft", "save_target": "local"}}
+        - User: "save it to the cloud"
+          Output: {{"intent": "save_draft", "save_target": "s3"}}
+        - User: "thanks"
+          Output: {{"intent": "handle_idle_chat"}}
+
+        **Context:**
         {context}
 
-        User Input: "{user_input}"
+        **User Input:** "{user_input}"
 
-        Return a single JSON object with the key "intent" and the determined
-        category. For example: {{"intent": "refine_draft"}}
+        Return a single, minified JSON object conforming to the following model:
+        {{
+            "intent": "...",
+            "save_target": "local" | "s3" | null
+        }}
     """
 
     try:
         response_text = llm_service.invoke(prompt)
-        response_json = json.loads(response_text)
-        intent = response_json.get("intent", "unclear")
+        action = RouteActionOutput.model_validate_json(response_text)
+        intent = action.intent
 
         # Update state based on intent
         if intent == "process_new_email":
@@ -88,10 +105,15 @@ def route_action(state: GraphState) -> GraphState:
             state["user_feedback"] = user_input
 
         state["intent"] = intent
+        # The model field may be None, which is what we want
+        state["save_target"] = action.save_target
 
         # Update conversation summary
+        summary_details = f"intent as: '{intent}'"
+        if action.save_target:
+            summary_details += f", save_target: '{action.save_target}'"
         new_summary_entry = (
-            f"User said: '{user_input}' -> AI classified intent as: '{intent}'"
+            f"User said: '{user_input}' -> AI classified {summary_details}"
         )
         updated_summary = (
             f"{conversation_summary}\n- {new_summary_entry}"
@@ -460,6 +482,7 @@ def reset_session(state: GraphState) -> GraphState:
         "user_feedback": None,
         "error_message": None,
         "intent": None,
+        "save_target": None,
         "conversation_summary": None,
     }
 
