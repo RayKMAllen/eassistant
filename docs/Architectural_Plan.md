@@ -90,7 +90,7 @@ The conversational flow is modeled as a state machine.
 
 | Node | Input (from State) | Output (to State) | Description |
 | --- | --- | --- | --- |
-| `route_action` | `user_input`, `draft_history`, `conversation_summary` | `intent`, `original_email`, `user_feedback` | **Entry Point**. Uses a **context-aware** LLM prompt, enriched with conversation summary and state, to classify the user's intent. |
+| `route_action` | `user_input`, `draft_history`, `conversation_summary` | `intent`, `original_email`, `user_feedback` | **Entry Point**. Uses a **context-aware** LLM prompt, enriched with conversation summary and state, to classify the user's intent. It is responsible for interpreting natural language commands, such as instructions to load a file (e.g., "load example.pdf"). |
 | `handle_idle_chat` | - | - | Responds to conversational filler without triggering the main workflow. |
 | `parse_input` | `original_email` | `original_email` (if from PDF) | Reads input text or extracts text from a PDF file. |
 | `extract_and_summarize` | `original_email` | `key_info`, `summary` | Calls the LLM to perform entity extraction and summarization. |
@@ -191,6 +191,8 @@ graph TD
 | **M1**    | **Core Pipeline** | - End-to-end flow for **plain text** works: paste email -> extract entities -> summarize -> get first draft. <br>- Extracted fields are displayed to the user. <br>- No refinement or saving yet. |
 | **M2**    | **Features & UX** | - **PDF Parsing:** User can provide a file path. <br>- **Iterative Refinement:** User can request changes to the draft (e.g., tone). <br>- **Session History:** Multiple emails can be processed in one session. |
 | **M3**    | **Polish & Ship** | - **Storage:** Drafts can be saved to a local file. Optional S3 upload is implemented. <br>- **Error Handling:** The app handles LLM errors, file errors, etc., gracefully. <br>- **Testing:** Unit and integration test coverage is >80%. |
+| **M5**    | **Conversational File Loading** | - The application can correctly interpret a user's request to load a file conversationally (e.g., "load example.pdf"). |
+| **M6**    | **Finalization & Verification** | - Test coverage is at 100% and all tests are passing. |
 
 ---
 

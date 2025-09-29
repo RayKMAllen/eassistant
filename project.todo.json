@@ -450,14 +450,52 @@
     },
     {
       "id": "M5",
-      "name": "Milestone 5: Finalization & Verification",
+      "name": "Milestone 5: Conversational File Loading",
       "dependencies": [
         "M4"
+      ],
+      "definition_of_done": "The application can correctly interpret a user's request to load a file conversationally.",
+      "tasks": [
+        {
+          "id": "M5.1",
+          "name": "Enhance 'route_action' prompt to recognize file load commands",
+          "dependencies": [
+            "M2.10"
+          ],
+          "definition_of_done": "The prompt for the 'route_action' node is updated with examples and instructions to correctly classify inputs like 'load example.pdf' as 'process_new_email'.",
+          "status": "pending"
+        },
+        {
+          "id": "M5.2",
+          "name": "Update 'parse_input' to extract filename from load command",
+          "dependencies": [
+            "M5.1",
+            "M2.2"
+          ],
+          "definition_of_done": "The 'parse_input' node is modified to correctly extract the filename from the full user input (e.g., get 'example.pdf' from 'load example.pdf').",
+          "status": "pending"
+        },
+        {
+          "id": "M5.3",
+          "name": "Add integration test for file loading intent",
+          "dependencies": [
+            "M5.2"
+          ],
+          "definition_of_done": "An integration test is added to verify that providing an input like 'load example.pdf' runs the full graph and correctly loads the file content.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "M6",
+      "name": "Milestone 6: Finalization & Verification",
+      "dependencies": [
+        "M5"
       ],
       "definition_of_done": "Test coverage is at 100% and all tests are passing.",
       "tasks": [
         {
-          "id": "M5.1",
+          "id": "M6.1",
           "name": "Increase test coverage to >95%",
           "dependencies": [
             "M3.7"
@@ -467,10 +505,10 @@
           "completed_at": "2025-09-29T13:43:04.678Z"
         },
         {
-          "id": "M5.2",
+          "id": "M6.2",
           "name": "Ensure 100% of tests are passing",
           "dependencies": [
-            "M5.1"
+            "M6.1"
           ],
           "definition_of_done": "The entire test suite runs successfully with no failures.",
           "status": "pending"
