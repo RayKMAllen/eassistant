@@ -236,7 +236,7 @@
     },
     {
       "id": "M3",
-      "name": "Milestone 3: Polish & Ship",
+      "name": "Milestone 3: Polishing & Testing",
       "dependencies": [
         "M2"
       ],
@@ -365,7 +365,8 @@
           "name": "Implement 'save' command",
           "dependencies": [],
           "definition_of_done": "A 'save' command is added to the CLI. When invoked, it uses the Storage service to save the latest draft to a local file.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T09:58:18.841Z"
         },
         {
           "id": "M4.6",

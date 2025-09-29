@@ -8,8 +8,11 @@ from rich.table import Table
 
 from eassistant.graph.builder import build_graph
 from eassistant.graph.state import GraphState
+from eassistant.services.storage import StorageService
 
 app = typer.Typer()
+
+storage_service = StorageService()
 
 
 def get_initial_state(session_id: uuid.UUID) -> GraphState:
@@ -56,6 +59,28 @@ def shell() -> None:
                 console.print(
                     "[cyan]Resetting session. Please enter new email content.[/cyan]"
                 )
+                continue
+
+            if user_input.lower().startswith("save"):
+                parts = user_input.split()
+                if len(parts) > 1:
+                    filename = parts[1]
+                    draft_history = state.get("draft_history")
+                    if draft_history:
+                        latest_draft_content = draft_history[-1]["content"]
+                        try:
+                            storage_service.save(latest_draft_content, filename)
+                            console.print(
+                                f"[bold green]Draft saved to {filename}[/bold green]"
+                            )
+                        except Exception as e:
+                            console.print(
+                                f"[bold red]Error saving file: {e}[/bold red]"
+                            )
+                    else:
+                        console.print("[bold red]No draft to save.[/bold red]")
+                else:
+                    console.print("[bold red]Usage: save <filename>[/bold red]")
                 continue
 
             # Prepare the state for the graph invocation

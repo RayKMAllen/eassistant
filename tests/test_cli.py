@@ -159,3 +159,56 @@ def test_shell_displays_summary_on_first_draft(mock_graph):
         # The summary should not be printed a second time
         assert "-- Extracted Information --" not in result.stdout
         assert "This is the refined draft." in result.stdout
+
+
+def test_shell_save_command(mock_graph):
+    """Test the 'save' command."""
+    with (
+        patch("eassistant.cli.build_graph", return_value=mock_graph),
+        patch("eassistant.cli.storage_service") as mock_storage,
+    ):
+        # Simulate a flow where a draft is created, then saved
+        user_input = "Create a draft\nsave my_draft.txt\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert result.exception is None
+        assert "Draft saved to my_draft.txt" in result.stdout
+
+        # Verify that the storage service's save method was called correctly
+        mock_storage.save.assert_called_once_with(
+            "This is a test draft.", "my_draft.txt"
+        )
+
+
+def test_shell_save_command_no_draft(mock_graph):
+    """Test the 'save' command when there is no draft to save."""
+    with (
+        patch("eassistant.cli.build_graph", return_value=mock_graph),
+        patch("eassistant.cli.storage_service") as mock_storage,
+    ):
+        # Set up the mock graph to return an empty draft history initially
+        mock_graph.invoke.return_value = {"draft_history": []}
+
+        user_input = "save my_draft.txt\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert result.exception is None
+        assert "No draft to save." in result.stdout
+        mock_storage.save.assert_not_called()
+
+
+def test_shell_save_command_no_filename(mock_graph):
+    """Test the 'save' command without providing a filename."""
+    with (
+        patch("eassistant.cli.build_graph", return_value=mock_graph),
+        patch("eassistant.cli.storage_service") as mock_storage,
+    ):
+        user_input = "Create a draft\nsave\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert result.exception is None
+        assert "Usage: save <filename>" in result.stdout
+        mock_storage.save.assert_not_called()
