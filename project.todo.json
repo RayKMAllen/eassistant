@@ -198,8 +198,8 @@
             "M2.3"
           ],
           "definition_of_done": "The graph can now route user input to the `refine_draft` node or start a new email.",
-          "status": "done",
-          "completed_at": "2025-09-27T12:33:58.439Z"
+          "status": "cancelled",
+          "reason": "Superseded by the new context-aware routing architecture (ADR-001), which provides a more robust and flexible solution."
         },
         {
           "id": "M2.5",
@@ -231,6 +231,49 @@
           "definition_of_done": "After the `extract_and_summarize` node runs, the extracted `key_info` and `summary` are printed to the console for the user to see.",
           "status": "done",
           "completed_at": "2025-09-29T09:04:51.076Z"
+        },
+        {
+          "id": "M2.8",
+          "name": "Enhance `GraphState` for Context-Aware Routing",
+          "dependencies": [
+            "M1.1"
+          ],
+          "definition_of_done": "The `GraphState` in `eassistant/graph/state.py` is updated to include the new `conversation_summary` field."
+        },
+        {
+          "id": "M2.9",
+          "name": "Implement `handle_idle_chat` Node",
+          "dependencies": [
+            "M1.1"
+          ],
+          "definition_of_done": "A new `handle_idle_chat` node is created in `eassistant/graph/nodes.py` that provides a simple, conversational response."
+        },
+        {
+          "id": "M2.10",
+          "name": "Implement Context-Aware `route_action` Node",
+          "dependencies": [
+            "M2.8",
+            "M1.3"
+          ],
+          "definition_of_done": "The `route_user_intent` node is replaced with a `route_action` node that dynamically constructs a rich context summary and uses an LLM to classify the user's intent based on the current state."
+        },
+        {
+          "id": "M2.11",
+          "name": "Update Graph Builder with New Routing Logic",
+          "dependencies": [
+            "M2.9",
+            "M2.10"
+          ],
+          "definition_of_done": "The `eassistant/graph/builder.py` is updated to use `route_action` as the entry point and correctly routes to all nodes, including `handle_idle_chat`."
+        },
+        {
+          "id": "M2.12",
+          "name": "Update Integration Tests for New Routing",
+          "dependencies": [
+            "M2.11",
+            "M2.6"
+          ],
+          "definition_of_done": "Existing integration tests are updated, and new tests are added to verify the context-aware routing logic for various conversational scenarios (e.g., idle chat, starting a new email mid-conversation)."
         }
       ]
     },
@@ -286,22 +329,23 @@
           "name": "Write comprehensive unit tests for nodes and services",
           "dependencies": [
             "M1.7",
-            "M2.6"
+            "M2.6",
+            "M2.10",
+            "M2.9"
           ],
           "definition_of_done": "Key business logic in all nodes and services has corresponding pytest unit tests.",
-          "status": "done",
-          "completed_at": "2025-09-27T13:53:29.293Z"
+          "status": "pending"
         },
         {
           "id": "M3.6",
           "name": "Expand integration tests for edge cases",
           "dependencies": [
             "M1.7",
-            "M2.6"
+            "M2.6",
+            "M2.11"
           ],
           "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases.",
-          "status": "done",
-          "completed_at": "2025-09-27T13:57:54.397Z"
+          "status": "pending"
         },
         {
           "id": "M3.7",
@@ -311,8 +355,7 @@
             "M3.6"
           ],
           "definition_of_done": "`pytest --cov` reports coverage of 80% or higher.",
-          "status": "done",
-          "completed_at": "2025-09-27T14:11:00.495Z"
+          "status": "pending"
         }
       ]
     },
@@ -346,11 +389,11 @@
           "id": "M4.3",
           "name": "Debug and Fix Existing Tests",
           "dependencies": [
-            "M3.7"
+            "M3.7",
+            "M2.12"
           ],
           "definition_of_done": "All existing tests in the suite pass reliably. Any and all intermittent failures are investigated and permanently resolved.",
-          "status": "done",
-          "completed_at": "2025-09-29T09:31:05.000Z"
+          "status": "pending"
         },
         {
           "id": "M4.4",
@@ -363,10 +406,11 @@
         {
           "id": "M4.5",
           "name": "Implement 'save' command",
-          "dependencies": [],
+          "dependencies": [
+            "M2.11"
+          ],
           "definition_of_done": "A 'save' command is added to the CLI. When invoked, it uses the Storage service to save the latest draft to a local file.",
-          "status": "done",
-          "completed_at": "2025-09-29T09:58:18.841Z"
+          "status": "pending"
         },
         {
           "id": "M4.6",
@@ -380,11 +424,11 @@
           "id": "M4.7",
           "name": "Allow user to request key info and summary display",
           "dependencies": [
-            "M1.4"
+            "M1.4",
+            "M2.11"
           ],
           "definition_of_done": "A user command (e.g., 'show info') is implemented that, when called after the initial extraction, displays the current key_info and summary. The key_info extraction logic is updated to include sender/receiver contact details (email/phone) if available, not just names.",
-          "status": "done",
-          "completed_at": "2025-09-29T10:12:25.237Z"
+          "status": "pending"
         }
       ]
     },
@@ -403,8 +447,7 @@
             "M3.7"
           ],
           "definition_of_done": "`pytest --cov` reports coverage of 95% or higher.",
-          "status": "done",
-          "completed_at": "2025-09-29T10:36:28.766Z"
+          "status": "pending"
         },
         {
           "id": "M5.2",
@@ -413,8 +456,7 @@
             "M5.1"
           ],
           "definition_of_done": "The entire test suite runs successfully with no failures.",
-          "status": "done",
-          "completed_at": "2025-09-29T10:39:20.396Z"
+          "status": "pending"
         }
       ]
     }

@@ -17,7 +17,7 @@ graph TD
     end
 
     subgraph Core Logic [Graph Nodes]
-        C[Route Intent]
+        C[Route Action]
         D[Parse Input]
         E[Extract & Summarize]
         F[Generate Draft]
@@ -27,6 +27,7 @@ graph TD
         J[Reset Session]
         K[Handle Unclear]
         L[Handle Error]
+        M[Handle Idle Chat]
     end
 
     subgraph Services & Adapters
@@ -45,7 +46,7 @@ graph TD
 
     A --> B
     B --> C
-    C --> D; C --> E; C --> F; C --> G; C --> H; C --> I; C --> J; C --> K; C --> L
+    C --> D; C --> G; C --> H; C --> I; C --> J; C --> K; C --> M
     D --> M
     E --> M
     F --> M
@@ -83,12 +84,14 @@ The conversational flow is modeled as a state machine.
 -   `current_tone`: The active tone for drafting (e.g., 'professional').
 -   `user_feedback`: The latest input from the user for refinement.
 -   `error_message`: A description of the last error, if any.
+-   `conversation_summary`: A running summary of the conversation for context-aware routing.
 
 **Nodes:**
 
 | Node | Input (from State) | Output (to State) | Description |
 | --- | --- | --- | --- |
-| `route_user_intent` | `user_input`, `draft_history` | `intent`, `original_email`, `user_feedback` | **Entry Point**. Classifies the user's intent and populates other state fields. |
+| `route_action` | `user_input`, `draft_history`, `conversation_summary` | `intent`, `original_email`, `user_feedback` | **Entry Point**. Uses a **context-aware** LLM prompt, enriched with conversation summary and state, to classify the user's intent. |
+| `handle_idle_chat` | - | - | Responds to conversational filler without triggering the main workflow. |
 | `parse_input` | `original_email` | `original_email` (if from PDF) | Reads input text or extracts text from a PDF file. |
 | `extract_and_summarize` | `original_email` | `key_info`, `summary` | Calls the LLM to perform entity extraction and summarization. |
 | `ask_for_tone` | `summary`, `key_info` | `current_tone` | Asks the user to specify a tone for the draft. |
@@ -102,27 +105,32 @@ The conversational flow is modeled as a state machine.
 
 **Edges (Transitions):**
 
-The graph is now driven by a conditional entry point that routes based on the user's classified intent.
+The graph is driven by a state-aware, conversational routing node that directs the flow based on the current context.
 
 ```mermaid
 graph TD
-    A[User Input] --> B[route_user_intent];
+    A[User Input] --> B[route_action];
     B --> C{route_by_intent};
-    C -- new_email --> D[parse_input];
+
+    C -- process_new_email --> D[parse_input];
     C -- refine_draft --> E[refine_draft];
     C -- show_info --> F[show_info];
     C -- save_draft --> G[save_draft];
     C -- reset_session --> H[reset_session];
+    C -- handle_idle_chat --> M[handle_idle_chat];
     C -- unclear --> I[handle_unclear];
+
     D --> J[extract_and_summarize];
     J --> K[ask_for_tone];
     K --> L[generate_initial_draft];
-    L --> M[End];
-    E --> M;
-    F --> M;
-    G --> M;
-    H --> M;
-    I --> M;
+
+    L --> Z[End Turn];
+    E --> Z;
+    F --> Z;
+    G --> Z;
+    H --> Z;
+    I --> Z;
+    M --> Z;
 ```
 
 ---
