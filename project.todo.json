@@ -373,7 +373,8 @@
           "name": "Implement 'eassistant' CLI entrypoint",
           "dependencies": [],
           "definition_of_done": "A console script entrypoint 'eassistant' is configured in pyproject.toml, allowing the application to be run directly from the command line.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T10:02:04.795Z"
         }
       ]
     },
