@@ -21,7 +21,9 @@
         {
           "id": "M0.2",
           "name": "Define project dependencies in pyproject.toml",
-          "dependencies": ["M0.1"],
+          "dependencies": [
+            "M0.1"
+          ],
           "definition_of_done": "pyproject.toml contains all necessary libraries (langgraph, pydantic, typer, rich, boto3, etc.).",
           "status": "done",
           "completed_at": "2025-09-26T14:56:15.087Z"
@@ -29,7 +31,9 @@
         {
           "id": "M0.3",
           "name": "Implement basic Typer CLI shell",
-          "dependencies": ["M0.1"],
+          "dependencies": [
+            "M0.1"
+          ],
           "definition_of_done": "A `shell.py` entry point exists that can be run to start an interactive loop that accepts user input.",
           "status": "done",
           "completed_at": "2025-09-26T15:25:24.543Z"
@@ -37,7 +41,9 @@
         {
           "id": "M0.4",
           "name": "Create 'hello world' LangGraph instance",
-          "dependencies": ["M0.1"],
+          "dependencies": [
+            "M0.1"
+          ],
           "definition_of_done": "A simple graph with a start and end node is defined and can be invoked.",
           "status": "done",
           "completed_at": "2025-09-26T15:30:20.123Z"
@@ -45,7 +51,10 @@
         {
           "id": "M0.5",
           "name": "Integrate graph into CLI shell",
-          "dependencies": ["M0.3", "M0.4"],
+          "dependencies": [
+            "M0.3",
+            "M0.4"
+          ],
           "definition_of_done": "User input in the CLI is passed to the LangGraph instance and the result is printed to the console.",
           "status": "done",
           "completed_at": "2025-09-26T15:36:51.485Z"
@@ -53,7 +62,9 @@
         {
           "id": "M0.6",
           "name": "Create minimal README.md",
-          "dependencies": ["M0.1"],
+          "dependencies": [
+            "M0.1"
+          ],
           "definition_of_done": "A README.md file exists at the project root with a basic project title and description.",
           "status": "done",
           "completed_at": "2025-09-27T08:28:03.848Z"
@@ -63,7 +74,9 @@
     {
       "id": "M1",
       "name": "Milestone 1: Core Pipeline (Text)",
-      "dependencies": ["M0"],
+      "dependencies": [
+        "M0"
+      ],
       "definition_of_done": "The full pipeline from pasting plain text to generating a first draft is functional and covered by a baseline integration test.",
       "tasks": [
         {
@@ -77,7 +90,9 @@
         {
           "id": "M1.2",
           "name": "Implement `parse_input` node for plain text",
-          "dependencies": ["M1.1"],
+          "dependencies": [
+            "M1.1"
+          ],
           "definition_of_done": "The node correctly takes user input and populates the `original_email` field in the state.",
           "status": "done",
           "completed_at": "2025-09-27T08:46:00.000Z"
@@ -93,7 +108,10 @@
         {
           "id": "M1.4",
           "name": "Implement `extract_and_summarize` node",
-          "dependencies": ["M1.1", "M1.3"],
+          "dependencies": [
+            "M1.1",
+            "M1.3"
+          ],
           "definition_of_done": "The node calls the LLM service and populates the `key_info` and `summary` fields in the state.",
           "status": "done",
           "completed_at": "2025-09-27T09:35:11.984Z"
@@ -101,7 +119,11 @@
         {
           "id": "M1.5",
           "name": "Implement `generate_initial_draft` node",
-          "dependencies": ["M1.1", "M1.3", "M1.4"],
+          "dependencies": [
+            "M1.1",
+            "M1.3",
+            "M1.4"
+          ],
           "definition_of_done": "The node uses the summary and entities to generate a draft and adds it to the `draft_history` in the state.",
           "status": "done",
           "completed_at": "2025-09-27T09:48:58.956Z"
@@ -109,7 +131,11 @@
         {
           "id": "M1.6",
           "name": "Build the core pipeline graph",
-          "dependencies": ["M1.2", "M1.4", "M1.5"],
+          "dependencies": [
+            "M1.2",
+            "M1.4",
+            "M1.5"
+          ],
           "definition_of_done": "The nodes are connected in `eassistant/graph/builder.py` to form the complete text-to-draft pipeline.",
           "status": "done",
           "completed_at": "2025-09-27T09:56:26.377Z"
@@ -117,17 +143,21 @@
         {
           "id": "M1.7",
           "name": "Write integration test for core pipeline",
-          "dependencies": ["M1.6"],
+          "dependencies": [
+            "M1.6"
+          ],
           "definition_of_done": "A pytest test exists that runs the entire M1 graph with a mocked LLM service to verify the end-to-end logic.",
           "status": "done",
           "completed_at": "2025-09-27T10:11:16.031Z"
-       }
+        }
       ]
     },
     {
       "id": "M2",
       "name": "Milestone 2: Features & UX",
-      "dependencies": ["M1"],
+      "dependencies": [
+        "M1"
+      ],
       "definition_of_done": "PDF parsing, draft refinement, and multi-turn conversation are all functional and covered by integration tests.",
       "tasks": [
         {
@@ -141,7 +171,10 @@
         {
           "id": "M2.2",
           "name": "Enhance `parse_input` node to handle file paths",
-          "dependencies": ["M1.2", "M2.1"],
+          "dependencies": [
+            "M1.2",
+            "M2.1"
+          ],
           "definition_of_done": "The node can differentiate between raw text and a file path, using the PDF utility when needed.",
           "status": "done",
           "completed_at": "2025-09-27T11:15:00.420Z"
@@ -149,7 +182,10 @@
         {
           "id": "M2.3",
           "name": "Implement `refine_draft` node",
-          "dependencies": ["M1.1", "M1.3"],
+          "dependencies": [
+            "M1.1",
+            "M1.3"
+          ],
           "definition_of_done": "The node takes `user_feedback` and the latest draft to generate a new version.",
           "status": "done",
           "completed_at": "2025-09-27T12:27:44.086Z"
@@ -157,7 +193,10 @@
         {
           "id": "M2.4",
           "name": "Add conditional logic for refinement in the graph",
-          "dependencies": ["M1.6", "M2.3"],
+          "dependencies": [
+            "M1.6",
+            "M2.3"
+          ],
           "definition_of_done": "The graph can now route user input to the `refine_draft` node or start a new email.",
           "status": "done",
           "completed_at": "2025-09-27T12:33:58.439Z"
@@ -165,7 +204,9 @@
         {
           "id": "M2.5",
           "name": "Manage session history",
-          "dependencies": ["M1.1"],
+          "dependencies": [
+            "M1.1"
+          ],
           "definition_of_done": "The state correctly handles multiple emails within a single run of the CLI application.",
           "status": "done",
           "completed_at": "2025-09-27T12:36:15.510Z"
@@ -173,7 +214,10 @@
         {
           "id": "M2.6",
           "name": "Write integration tests for new features",
-          "dependencies": ["M2.2", "M2.4"],
+          "dependencies": [
+            "M2.2",
+            "M2.4"
+          ],
           "definition_of_done": "Integration tests are added to verify the file parsing and draft refinement pathways in the graph.",
           "status": "done",
           "completed_at": "2025-09-27T12:54:01.464Z"
@@ -181,7 +225,9 @@
         {
           "id": "M2.7",
           "name": "Display extracted info to user",
-          "dependencies": ["M1.4"],
+          "dependencies": [
+            "M1.4"
+          ],
           "definition_of_done": "After the `extract_and_summarize` node runs, the extracted `key_info` and `summary` are printed to the console for the user to see.",
           "status": "pending"
         }
@@ -190,7 +236,9 @@
     {
       "id": "M3",
       "name": "Milestone 3: Polish & Ship",
-      "dependencies": ["M2"],
+      "dependencies": [
+        "M2"
+      ],
       "definition_of_done": "The application is robust, with proper storage, error handling, and sufficient test coverage.",
       "tasks": [
         {
@@ -204,7 +252,9 @@
         {
           "id": "M3.2",
           "name": "Implement Storage service (S3)",
-          "dependencies": ["M3.1"],
+          "dependencies": [
+            "M3.1"
+          ],
           "definition_of_done": "The storage service can optionally upload a file to a user-provided S3 bucket.",
           "status": "done",
           "completed_at": "2025-09-27T13:15:23.716Z"
@@ -212,7 +262,10 @@
         {
           "id": "M3.3",
           "name": "Implement `save_draft` node",
-          "dependencies": ["M1.1", "M3.1"],
+          "dependencies": [
+            "M1.1",
+            "M3.1"
+          ],
           "definition_of_done": "A node is created that uses the storage service to save the latest draft.",
           "status": "done",
           "completed_at": "2025-09-27T13:32:57.800Z"
@@ -220,7 +273,9 @@
         {
           "id": "M3.4",
           "name": "Implement `handle_error` node and graph integration",
-          "dependencies": ["M1.6"],
+          "dependencies": [
+            "M1.6"
+          ],
           "definition_of_done": "The graph can catch exceptions from any node and route to a node that prints a user-friendly error message.",
           "status": "done",
           "completed_at": "2025-09-27T13:40:43.742Z"
@@ -228,7 +283,10 @@
         {
           "id": "M3.5",
           "name": "Write comprehensive unit tests for nodes and services",
-          "dependencies": ["M1.7", "M2.6"],
+          "dependencies": [
+            "M1.7",
+            "M2.6"
+          ],
           "definition_of_done": "Key business logic in all nodes and services has corresponding pytest unit tests.",
           "status": "done",
           "completed_at": "2025-09-27T13:53:29.293Z"
@@ -236,7 +294,10 @@
         {
           "id": "M3.6",
           "name": "Expand integration tests for edge cases",
-          "dependencies": ["M1.7", "M2.6"],
+          "dependencies": [
+            "M1.7",
+            "M2.6"
+          ],
           "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases.",
           "status": "done",
           "completed_at": "2025-09-27T13:57:54.397Z"
@@ -244,46 +305,97 @@
         {
           "id": "M3.7",
           "name": "Achieve >80% test coverage",
-          "dependencies": ["M3.5", "M3.6"],
+          "dependencies": [
+            "M3.5",
+            "M3.6"
+          ],
           "definition_of_done": "`pytest --cov` reports coverage of 80% or higher.",
           "status": "done",
           "completed_at": "2025-09-27T14:11:00.495Z"
+        }
+      ]
+    },
+    {
+      "id": "M4",
+      "name": "Milestone 4: Feature Enhancements",
+      "dependencies": [
+        "M3"
+      ],
+      "definition_of_done": "New features for project status reporting, tone selection, saving drafts, and a direct CLI entrypoint are implemented and tested.",
+      "tasks": [
+        {
+          "id": "M4.1",
+          "name": "Process Project_Status_Summary.md",
+          "dependencies": [],
+          "definition_of_done": "The Project_Status_Summary.md document is read and its contents are processed.",
+          "status": "pending"
         },
         {
-          "id": "M3.8",
+          "id": "M4.2",
+          "name": "Extract and print key info and summary from status doc",
+          "dependencies": [
+            "M4.1"
+          ],
+          "definition_of_done": "Key information and a summary are extracted from the status document and printed to the console.",
+          "status": "pending"
+        },
+        {
+          "id": "M4.3",
+          "name": "Debug and Fix Existing Tests",
+          "dependencies": [
+            "M3.7"
+          ],
+          "definition_of_done": "All existing tests in the suite pass reliably. Any and all intermittent failures are investigated and permanently resolved.",
+          "status": "pending"
+        },
+        {
+          "id": "M4.4",
+          "name": "Implement 'ask_for_tone' node",
+          "dependencies": [],
+          "definition_of_done": "A new 'ask_for_tone' node is added to the graph. The graph flow is updated to ask the user for a desired tone (e.g., formal, casual) and incorporates this into the draft generation prompt.",
+          "status": "pending"
+        },
+        {
+          "id": "M4.5",
+          "name": "Implement 'save' command",
+          "dependencies": [],
+          "definition_of_done": "A 'save' command is added to the CLI. When invoked, it uses the Storage service to save the latest draft to a local file.",
+          "status": "pending"
+        },
+        {
+          "id": "M4.6",
+          "name": "Implement 'eassistant' CLI entrypoint",
+          "dependencies": [],
+          "definition_of_done": "A console script entrypoint 'eassistant' is configured in pyproject.toml, allowing the application to be run directly from the command line.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": "M5",
+      "name": "Milestone 5: Finalization & Verification",
+      "dependencies": [
+        "M4"
+      ],
+      "definition_of_done": "Test coverage is at 100% and all tests are passing.",
+      "tasks": [
+        {
+          "id": "M5.1",
           "name": "Increase test coverage to >95%",
-          "dependencies": ["M3.7"],
+          "dependencies": [
+            "M3.7"
+          ],
           "definition_of_done": "`pytest --cov` reports coverage of 95% or higher.",
           "status": "pending"
         },
         {
-          "id": "M4",
-          "name": "Milestone 4: Project Status Reporting and Test Debugging",
-          "dependencies": ["M3"],
-          "definition_of_done": "The project status can be automatically extracted, and existing tests are debugged.",
-          "tasks": [
-            {
-              "id": "M4.1",
-              "name": "Process Project_Status_Summary.md",
-              "dependencies": [],
-              "definition_of_done": "The Project_Status_Summary.md document is read and its contents are processed.",
-              "status": "pending"
-            },
-            {
-              "id": "M4.2",
-              "name": "Extract and print key info and summary from status doc",
-              "dependencies": ["M4.1"],
-              "definition_of_done": "Key information and a summary are extracted from the status document and printed to the console.",
-              "status": "pending"
-            },
-            {
-              "id": "M4.3",
-              "name": "Debug existing tests",
-              "dependencies": ["M3.8"],
-              "definition_of_done": "All existing tests pass reliably and any intermittent failures are resolved.",
-              "status": "pending"
-            }
-          ]
+          "id": "M5.2",
+          "name": "Ensure 100% of tests are passing",
+          "dependencies": [
+            "M5.1"
+          ],
+          "definition_of_done": "The entire test suite runs successfully with no failures.",
+          "status": "pending"
         }
       ]
     }

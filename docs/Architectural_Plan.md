@@ -84,7 +84,8 @@ The conversational flow is modeled as a state machine.
 | -------------------- | ------------------------------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------- |
 | `parse_input`        | `original_email`, `email_path`                   | `original_email` (if from PDF)                        | Reads input text or extracts text from a PDF file.                          |
 | `extract_and_summarize` | `original_email`                                 | `key_info`, `summary`                       | Calls the LLM to perform entity extraction and summarization in one step.   |
-| `generate_initial_draft` | `key_info`, `summary`                  | `draft_history` (appends new draft)                   | Creates the first reply draft based on the extracted context.               |
+| `ask_for_tone`         | `summary`, `key_info`                            | `current_tone`                                        | Asks the user to specify a tone for the draft. Defaults if none provided.   |
+| `generate_initial_draft` | `key_info`, `summary`, `current_tone`            | `draft_history` (appends new draft)                   | Creates the first reply draft based on the extracted context and tone.      |
 | `refine_draft`       | `draft_history` (last draft), `user_feedback`    | `draft_history` (appends refined draft)               | Takes user feedback to modify the latest draft (e.g., change tone, content). |
 | `save_draft`         | `draft_history` (last draft)                     | -                                                     | Saves the final draft to the local filesystem or S3.                        |
 | `handle_error`       | `error_message`                                  | -                                                     | Informs the user about an error and provides guidance.                      |
@@ -96,8 +97,9 @@ graph TD
     Start --> ParseInput
     ParseInput -- Success --> ExtractAndSummarize
     ParseInput -- Failure --> HandleError
-    ExtractAndSummarize -- Success --> GenerateInitialDraft
+    ExtractAndSummarize -- Success --> AskForTone
     ExtractAndSummarize -- Failure --> HandleError
+    AskForTone --> GenerateInitialDraft
     GenerateInitialDraft -- Success --> WaitForUserInput
     GenerateInitialDraft -- Failure --> HandleError
     WaitForUserInput -- "refine" --> RefineDraft
