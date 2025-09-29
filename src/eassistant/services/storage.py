@@ -31,8 +31,14 @@ class StorageService:
         if target == "s3":
             if not s3_bucket:
                 raise ValueError("s3_bucket must be provided for S3 target.")
+
+            # If file_path is just a filename, save it to the 'outputs' directory
+            s3_key = file_path
+            if "/" not in s3_key and "\\" not in s3_key:
+                s3_key = f"outputs/{s3_key}"
+
             self.s3_client.put_object(
-                Bucket=s3_bucket, Key=file_path, Body=content.encode("utf-8")
+                Bucket=s3_bucket, Key=s3_key, Body=content.encode("utf-8")
             )
         else:
             path = Path(file_path)

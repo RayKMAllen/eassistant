@@ -72,3 +72,27 @@ def test_save_s3_boto_error():
         storage_service.save(
             content=content, file_path=file_key, target="s3", s3_bucket=bucket_name
         )
+
+
+@mock_aws
+def test_save_s3_file_to_default_dir():
+    """
+    Tests that a file with no path info is saved to the 'outputs' dir in S3.
+    """
+    # Setup mock S3
+    s3 = boto3.client("s3", region_name="us-east-1")
+    bucket_name = "test-bucket"
+    s3.create_bucket(Bucket=bucket_name)
+
+    storage_service = StorageService()
+    content = "This is an S3 test draft for the default directory."
+    filename = "s3_draft.txt"
+    expected_key = "outputs/s3_draft.txt"
+
+    storage_service.save(
+        content=content, file_path=filename, target="s3", s3_bucket=bucket_name
+    )
+
+    # Verify the object was uploaded to the default directory
+    response = s3.get_object(Bucket=bucket_name, Key=expected_key)
+    assert response["Body"].read().decode("utf-8") == content

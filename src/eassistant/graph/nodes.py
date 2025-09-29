@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
+from ..config import config
 from ..models import RouteActionOutput
 from ..services.llm import LLMService
 from ..services.storage import StorageService
@@ -400,7 +401,7 @@ def save_draft(state: GraphState) -> GraphState:
     # For now, save to a local 'outputs' directory.
     # This could be configured later.
     output_path = Path("outputs") / filename
-    s3_bucket = "my-email-assistant-drafts"  # Replace with your actual bucket name
+    s3_bucket = config["s3_bucket_name"]
 
     try:
         if save_target == "s3":
