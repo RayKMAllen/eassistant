@@ -281,7 +281,9 @@
             "M2.11",
             "M2.6"
           ],
-          "definition_of_done": "Existing integration tests are updated, and new tests are added to verify the context-aware routing logic for various conversational scenarios (e.g., idle chat, starting a new email mid-conversation)."
+          "definition_of_done": "Existing integration tests are updated, and new tests are added to verify the context-aware routing logic for various conversational scenarios (e.g., idle chat, starting a new email mid-conversation).",
+          "status": "done",
+          "completed_at": "2025-09-29T12:52:41.903Z"
         }
       ]
     },

@@ -419,3 +419,44 @@ def test_empty_user_input_is_handled(capsys) -> None:
     # 5. Verify the user is prompted appropriately
     captured = capsys.readouterr()
     assert "I'm not sure what you mean." in captured.out
+
+
+def test_idle_chat_pipeline_integration(mocked_llm_service: MagicMock, capsys) -> None:
+    """
+    Integration test for the idle chat scenario.
+
+    Verifies that the graph correctly routes conversational filler to the
+    `handle_idle_chat` node and that no other part of the pipeline is triggered.
+    """
+    # 1. Arrange: Mock the LLM service to return the 'handle_idle_chat' intent
+    from eassistant.graph import nodes
+
+    mocked_llm_service.invoke.return_value = json.dumps({"intent": "handle_idle_chat"})
+    nodes.llm_service = mocked_llm_service
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define the initial state
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        user_input="Hey, how are you?",
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert the final state and output
+    assert final_state is not None
+    # The intent should be set correctly
+    assert final_state.get("intent") == "handle_idle_chat"
+    # No other state should have changed (no summary, no draft)
+    assert final_state.get("summary") is None
+    assert not final_state.get("draft_history")
+
+    # 6. Verify the user gets a conversational response
+    captured = capsys.readouterr()
+    assert "Hello! How can I help you with your email?" in captured.out
+
+    # 7. Verify that the LLM was only called once (for routing)
+    mocked_llm_service.invoke.assert_called_once()
