@@ -413,7 +413,8 @@
             "M5.1"
           ],
           "definition_of_done": "The entire test suite runs successfully with no failures.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T10:39:20.396Z"
         }
       ]
     }
