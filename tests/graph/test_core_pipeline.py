@@ -1,7 +1,7 @@
 import json
 import uuid
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 
@@ -739,3 +739,51 @@ def test_file_loading_intent_integration(mocked_llm_service: MagicMock) -> None:
 
     # 6. Verify that the LLM service was called correctly
     assert mocked_llm_service.invoke.call_count == 3
+
+
+def test_conversational_cloud_save_integration(
+    mocked_llm_service: MagicMock,
+) -> None:
+    """
+    Integration test for the M7.4 conversational cloud save feature.
+
+    It verifies that a command like 'save to the cloud' is correctly
+    interpreted, and the StorageService is called with the 's3' target.
+    """
+    # 1. Arrange: Mock the LLM to return a 'save_draft' intent with an 's3' target
+    from eassistant.graph import nodes
+    from eassistant.services.storage import StorageService
+
+    mocked_llm_service.invoke.return_value = json.dumps(
+        {"intent": "save_draft", "save_target": "s3"}
+    )
+    nodes.llm_service = mocked_llm_service
+
+    # 2. Mock the StorageService to intercept the save call
+    with patch.object(
+        nodes, "storage_service", spec=StorageService
+    ) as mocked_storage_service:
+        # 3. Build the graph
+        app = build_graph()
+
+        # 4. Define initial state with an existing draft
+        initial_state = GraphState(
+            session_id=uuid.uuid4(),
+            user_input="save this to the cloud",
+            draft_history=[{"content": "This is the final draft."}],
+        )
+
+        # 5. Run the graph
+        final_state = app.invoke(initial_state)
+
+        # 6. Assert the final state is as expected
+        assert final_state is not None
+        assert final_state["save_target"] == "s3"
+
+        # 7. Verify that the mocked storage service was called correctly
+        mocked_storage_service.save.assert_called_once_with(
+            content="This is the final draft.",
+            file_path=ANY,
+            target="s3",
+            s3_bucket="my-email-assistant-drafts",
+        )

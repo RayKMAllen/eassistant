@@ -566,7 +566,8 @@
             "M7.3"
           ],
           "definition_of_done": "An integration test is added that simulates a conversational command like 'save this to the cloud' and verifies (with a mock) that the StorageService was called with the 's3' target.",
-          "status": "todo"
+          "status": "done",
+          "completed_at": "2025-09-29T14:56:20.976Z"
         }
       ]
     }
