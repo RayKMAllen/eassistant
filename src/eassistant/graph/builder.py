@@ -5,8 +5,13 @@ from .nodes import (
     extract_and_summarize,
     generate_initial_draft,
     handle_error,
+    handle_unclear,
     parse_input,
     refine_draft,
+    reset_session,
+    route_user_intent,
+    save_draft,
+    show_info,
 )
 from .state import GraphState
 
@@ -18,42 +23,59 @@ def check_for_errors(state: GraphState) -> str:
     return "continue"
 
 
-def route_initial_request(state: GraphState) -> str:
-    """
-    Determines the starting point of the graph.
-    If there's user feedback and a draft history, we refine.
-    Otherwise, we start a new email flow.
-    """
-    if state.get("user_feedback") and state.get("draft_history"):
+def route_by_intent(state: GraphState) -> str:
+    """Routes to the appropriate node based on the user's intent."""
+    intent = state.get("intent")
+    if intent == "new_email":
+        return "parse_input"
+    if intent == "refine_draft":
         return "refine_draft"
-    return "parse_input"
+    if intent == "show_info":
+        return "show_info"
+    if intent == "save_draft":
+        return "save_draft"
+    if intent == "reset_session":
+        return "reset_session"
+    return "handle_unclear"
 
 
 def build_graph() -> StateGraph:
     """
-    Creates the conversational assistant graph.
+    Creates the conversational assistant graph with intent-based routing.
     """
     workflow = StateGraph(GraphState)
 
-    # Add nodes
+    # Add all nodes
+    workflow.add_node("route_user_intent", route_user_intent)
     workflow.add_node("parse_input", parse_input)
     workflow.add_node("extract_and_summarize", extract_and_summarize)
     workflow.add_node("ask_for_tone", ask_for_tone)
     workflow.add_node("generate_initial_draft", generate_initial_draft)
     workflow.add_node("refine_draft", refine_draft)
+    workflow.add_node("show_info", show_info)
+    workflow.add_node("save_draft", save_draft)
+    workflow.add_node("reset_session", reset_session)
+    workflow.add_node("handle_unclear", handle_unclear)
     workflow.add_node("handle_error", handle_error)
 
-    # Define control flow
-    workflow.set_conditional_entry_point(
-        route_initial_request,
+    # Set the entry point to the intent router
+    workflow.set_entry_point("route_user_intent")
+
+    # Add conditional edges from the intent router
+    workflow.add_conditional_edges(
+        "route_user_intent",
+        route_by_intent,
         {
-            "refine_draft": "refine_draft",
             "parse_input": "parse_input",
+            "refine_draft": "refine_draft",
+            "show_info": "show_info",
+            "save_draft": "save_draft",
+            "reset_session": "reset_session",
+            "handle_unclear": "handle_unclear",
         },
     )
 
-    # Each step checks for errors. If an error is found, it goes to the error
-    # handler. Otherwise, it proceeds to the next step.
+    # Define the rest of the control flow with error checking
     workflow.add_conditional_edges(
         "parse_input",
         check_for_errors,
@@ -80,7 +102,11 @@ def build_graph() -> StateGraph:
         {"continue": END, "handle_error": "handle_error"},
     )
 
-    # After an error is handled, the graph ends.
+    # Edges for single-action nodes
+    workflow.add_edge("show_info", END)
+    workflow.add_edge("save_draft", END)
+    workflow.add_edge("reset_session", END)
+    workflow.add_edge("handle_unclear", END)
     workflow.add_edge("handle_error", END)
 
     return workflow.compile()

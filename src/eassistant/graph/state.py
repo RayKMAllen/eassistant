@@ -28,6 +28,8 @@ class GraphState(TypedDict):
     """
 
     session_id: UUID
+    user_input: Optional[str]  # Raw user input from the CLI
+    intent: Optional[str]  # Classified intent of the user
     original_email: Optional[str]
     email_path: Optional[str]
     key_info: Optional[ExtractedEntities]

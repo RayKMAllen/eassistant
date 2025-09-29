@@ -1,6 +1,7 @@
 import json
 from uuid import UUID
 
+import pytest
 from pytest_mock import MockerFixture
 
 from eassistant.graph.nodes import (
@@ -8,11 +9,224 @@ from eassistant.graph.nodes import (
     extract_and_summarize,
     generate_initial_draft,
     handle_error,
+    handle_unclear,
     parse_input,
     refine_draft,
+    reset_session,
+    route_user_intent,
     save_draft,
+    show_info,
 )
 from eassistant.graph.state import GraphState
+
+
+@pytest.mark.parametrize(
+    (
+        "user_input",
+        "has_draft_history",
+        "expected_intent",
+        "expected_original_email",
+        "expected_user_feedback",
+    ),
+    [
+        (
+            "This is a new email.",
+            False,
+            "new_email",
+            "This is a new email.",
+            None,
+        ),
+        ("Show me the info", True, "show_info", None, None),
+        ("save the draft", True, "save_draft", None, None),
+        ("make it better", True, "refine_draft", None, "make it better"),
+        ("new", True, "reset_session", None, None),
+        ("gibberish", False, "unclear", None, None),
+    ],
+)
+def test_route_user_intent(
+    mocker: MockerFixture,
+    user_input,
+    has_draft_history,
+    expected_intent,
+    expected_original_email,
+    expected_user_feedback,
+) -> None:
+    """
+    Tests that the route_user_intent node correctly classifies user input.
+    """
+    # Arrange
+    mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
+    mock_llm.invoke.return_value = json.dumps({"intent": expected_intent})
+
+    initial_state: GraphState = {
+        "user_input": user_input,
+        "draft_history": [{"content": "A draft", "tone": "professional"}]
+        if has_draft_history
+        else [],
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = route_user_intent(initial_state)
+
+    # Assert
+    assert result_state["intent"] == expected_intent
+    assert result_state["original_email"] == expected_original_email
+    assert result_state["user_feedback"] == expected_user_feedback
+
+
+def test_route_user_intent_handles_new_command() -> None:
+    """
+    Tests that the 'new' command is handled directly without calling the LLM.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "user_input": "new",
+        "draft_history": [],
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "original_email": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = route_user_intent(initial_state)
+
+    # Assert
+    assert result_state["intent"] == "reset_session"
+
+
+def test_show_info_success(capsys) -> None:
+    """
+    Tests that show_info correctly displays the extracted information.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "key_info": {
+            "sender_name": "John Doe",
+            "sender_contact": "john@example.com",
+            "receiver_name": "Jane Doe",
+            "receiver_contact": "jane@example.com",
+            "subject": "Test",
+        },
+        "summary": "This is a test summary.",
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "original_email": None,
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    show_info(initial_state)
+
+    # Assert
+    captured = capsys.readouterr()
+    assert "-- Extracted Information --" in captured.out
+    assert "John Doe" in captured.out
+    assert "This is a test summary." in captured.out
+
+
+def test_show_info_no_info(capsys) -> None:
+    """
+    Tests that show_info handles the case where no information is available.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "key_info": None,
+        "summary": None,
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "original_email": None,
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    show_info(initial_state)
+
+    # Assert
+    captured = capsys.readouterr()
+    assert "No information extracted yet." in captured.out
+
+
+def test_reset_session() -> None:
+    """
+    Tests that reset_session correctly clears the state.
+    """
+    # Arrange
+    session_id = UUID("11111111-1111-1111-1111-111111111111")
+    initial_state: GraphState = {
+        "session_id": session_id,
+        "user_input": "new",
+        "original_email": "some email",
+        "summary": "a summary",
+        "draft_history": [{"content": "a draft", "tone": "casual"}],
+        "intent": "reset_session",
+        "email_path": None,
+        "key_info": None,
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+    }
+
+    # Act
+    result_state = reset_session(initial_state)
+
+    # Assert
+    assert result_state["session_id"] == session_id
+    assert result_state["original_email"] is None
+    assert result_state["summary"] is None
+    assert result_state["draft_history"] == []
+    assert result_state["intent"] is None
+
+
+def test_handle_unclear(capsys) -> None:
+    """
+    Tests that handle_unclear prints the correct help message.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "original_email": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    handle_unclear(initial_state)
+
+    # Assert
+    captured = capsys.readouterr()
+    assert "I'm not sure what you mean." in captured.out
 
 
 def test_generate_initial_draft_success(mocker: MockerFixture) -> None:
@@ -34,12 +248,14 @@ def test_generate_initial_draft_success(mocker: MockerFixture) -> None:
             "subject": "Test Subject",
         },
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "draft_history": [],
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -75,6 +291,7 @@ def test_extract_and_summarize_success(mocker: MockerFixture) -> None:
     initial_state: GraphState = {
         "original_email": "This is a test email body.",
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -82,6 +299,7 @@ def test_extract_and_summarize_success(mocker: MockerFixture) -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -111,6 +329,7 @@ def test_extract_and_summarize_json_decode_error(mocker: MockerFixture) -> None:
     initial_state: GraphState = {
         "original_email": "This is a test email body.",
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -118,6 +337,7 @@ def test_extract_and_summarize_json_decode_error(mocker: MockerFixture) -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -137,6 +357,7 @@ def test_parse_input_with_text() -> None:
     initial_state: GraphState = {
         "original_email": "This is a test email.",
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -144,6 +365,7 @@ def test_parse_input_with_text() -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -173,6 +395,7 @@ def test_parse_input_with_pdf(mocker: MockerFixture, tmp_path) -> None:
     initial_state: GraphState = {
         "original_email": str(pdf_file),
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -180,6 +403,7 @@ def test_parse_input_with_pdf(mocker: MockerFixture, tmp_path) -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -209,6 +433,7 @@ def test_refine_draft_success(mocker: MockerFixture) -> None:
             "subject": "Test Subject",
         },
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "draft_history": [
@@ -217,6 +442,7 @@ def test_refine_draft_success(mocker: MockerFixture) -> None:
         "current_tone": "professional",
         "user_feedback": "Make it more friendly.",
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -245,6 +471,7 @@ def test_save_draft_success(mocker: MockerFixture) -> None:
             {"content": "This is the final draft.", "tone": "friendly"},
         ],
         "session_id": UUID("12345678-1234-5678-1234-567812345678"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "key_info": None,
@@ -252,6 +479,7 @@ def test_save_draft_success(mocker: MockerFixture) -> None:
         "current_tone": "friendly",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -279,6 +507,7 @@ def test_save_draft_no_history() -> None:
     initial_state: GraphState = {
         "draft_history": [],
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "",
         "email_path": None,
         "key_info": None,
@@ -286,6 +515,7 @@ def test_save_draft_no_history() -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -304,6 +534,7 @@ def test_handle_error(capsys) -> None:
     initial_state: GraphState = {
         "error_message": error_message,
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "",
         "email_path": None,
         "key_info": None,
@@ -311,6 +542,7 @@ def test_handle_error(capsys) -> None:
         "draft_history": [],
         "current_tone": "professional",
         "user_feedback": None,
+        "intent": None,
     }
 
     # Act
@@ -330,6 +562,7 @@ def test_parse_input_no_input() -> None:
     initial_state: GraphState = {
         "original_email": None,
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -337,6 +570,7 @@ def test_parse_input_no_input() -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -362,6 +596,7 @@ def test_parse_input_pdf_extraction_error(mocker: MockerFixture, tmp_path) -> No
     initial_state: GraphState = {
         "original_email": str(pdf_file),
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -369,6 +604,7 @@ def test_parse_input_pdf_extraction_error(mocker: MockerFixture, tmp_path) -> No
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -390,6 +626,7 @@ def test_extract_and_summarize_llm_exception(mocker: MockerFixture) -> None:
     initial_state: GraphState = {
         "original_email": "Test email",
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -397,6 +634,7 @@ def test_extract_and_summarize_llm_exception(mocker: MockerFixture) -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -416,6 +654,7 @@ def test_extract_and_summarize_no_content() -> None:
     initial_state: GraphState = {
         "original_email": None,
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "email_path": None,
         "key_info": None,
         "summary": None,
@@ -423,6 +662,7 @@ def test_extract_and_summarize_no_content() -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -441,12 +681,14 @@ def test_generate_initial_draft_missing_data() -> None:
         "summary": None,
         "key_info": None,
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "draft_history": [],
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -472,12 +714,14 @@ def test_generate_initial_draft_llm_exception(mocker: MockerFixture) -> None:
         "summary": "A test summary.",
         "key_info": {"sender_name": "Test"},
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "draft_history": [],
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -498,12 +742,14 @@ def test_refine_draft_no_history() -> None:
         "draft_history": [],
         "user_feedback": "Make it better.",
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "key_info": None,
         "summary": None,
         "current_tone": "professional",
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -522,12 +768,14 @@ def test_refine_draft_no_feedback() -> None:
         "draft_history": [{"content": "A draft.", "tone": "professional"}],
         "user_feedback": None,
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "key_info": None,
         "summary": None,
         "current_tone": "professional",
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -553,12 +801,14 @@ def test_refine_draft_llm_exception(mocker: MockerFixture) -> None:
         "draft_history": [{"content": "A draft.", "tone": "professional"}],
         "user_feedback": "Make it better.",
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "key_info": None,
         "summary": None,
         "current_tone": "professional",
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -582,6 +832,7 @@ def test_save_draft_storage_exception(mocker: MockerFixture) -> None:
     initial_state: GraphState = {
         "draft_history": [{"content": "A draft.", "tone": "professional"}],
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "key_info": None,
@@ -589,6 +840,7 @@ def test_save_draft_storage_exception(mocker: MockerFixture) -> None:
         "current_tone": "professional",
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -612,12 +864,14 @@ def test_ask_for_tone_with_input(mocker: MockerFixture) -> None:
         "summary": "A test summary.",
         "key_info": {"sender_name": "Test Sender"},
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "draft_history": [],
         "current_tone": None,
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act
@@ -642,12 +896,14 @@ def test_ask_for_tone_no_input_defaults_to_professional(
         "summary": "A test summary.",
         "key_info": {"sender_name": "Test Sender"},
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
         "original_email": "Test email",
         "email_path": None,
         "draft_history": [],
         "current_tone": None,
         "user_feedback": None,
         "error_message": None,
+        "intent": None,
     }
 
     # Act

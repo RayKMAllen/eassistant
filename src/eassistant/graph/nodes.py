@@ -4,6 +4,7 @@ from pathlib import Path
 
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 
 from ..services.llm import LLMService
 from ..services.storage import StorageService
@@ -15,6 +16,69 @@ from .state import Draft, GraphState
 llm_service = LLMService()
 storage_service = StorageService()
 console = Console()
+
+
+def route_user_intent(state: GraphState) -> GraphState:
+    """
+    Classifies the user's input to determine their intent.
+    """
+    print("Routing user intent...")
+    user_input = state.get("user_input")
+    draft_history = state.get("draft_history")
+
+    if not user_input:
+        state["intent"] = "unclear"
+        return state
+
+    # Simple keyword check for reset
+    if user_input.lower() == "new":
+        state["intent"] = "reset_session"
+        return state
+
+    # If there's a draft history, the user is more likely to be refining,
+    # saving, or asking for info.
+    context = (
+        "The user has an active draft and may want to refine it, save it, "
+        "show info, or start over."
+        if draft_history
+        else "The user is starting a new conversation and likely wants to "
+        "provide a new email to process."
+    )
+
+    prompt = f"""
+        Given the user's input and the current context, classify the user's
+        intent into one of the following categories:
+        - new_email
+        - refine_draft
+        - show_info
+        - save_draft
+        - reset_session
+        - unclear
+
+        Context: {context}
+        User Input: "{user_input}"
+
+        Return a single JSON object with a key "intent" and one of the
+        category values. For example: {{"intent": "refine_draft"}}
+    """
+
+    try:
+        response_text = llm_service.invoke(prompt)
+        response_json = json.loads(response_text)
+        intent = response_json.get("intent", "unclear")
+
+        # When the intent is to start a new email or refine an existing one,
+        # we need to populate the appropriate state fields.
+        if intent == "new_email":
+            state["original_email"] = user_input
+        elif intent == "refine_draft":
+            state["user_feedback"] = user_input
+
+        state["intent"] = intent
+    except (json.JSONDecodeError, Exception):
+        state["intent"] = "unclear"
+
+    return state
 
 
 def parse_input(state: GraphState) -> GraphState:
@@ -288,4 +352,83 @@ def handle_error(state: GraphState) -> GraphState:
     if error_message:
         print(f"An error occurred: {error_message}")
         state["error_message"] = None  # Clear the error
+    return state
+
+
+def show_info(state: GraphState) -> GraphState:
+    """
+    Displays the extracted key info and summary.
+    """
+    print("Showing extracted information...")
+    key_info = state.get("key_info")
+    summary = state.get("summary")
+
+    if not key_info or not summary:
+        console.print("[bold yellow]No information extracted yet.[/bold yellow]")
+        return state
+
+    table = Table(show_header=False, box=None, padding=(0, 1))
+    table.add_column(style="cyan")
+    table.add_column()
+
+    table.add_row("Sender:", key_info.get("sender_name", "N/A"))
+    table.add_row("Sender Contact:", key_info.get("sender_contact", "N/A"))
+    table.add_row("Recipient:", key_info.get("receiver_name", "N/A"))
+    table.add_row("Recipient Contact:", key_info.get("receiver_contact", "N/A"))
+    table.add_row("Subject:", key_info.get("subject", "N/A"))
+
+    summary_panel = Panel(
+        summary,
+        title="[bold]Summary[/bold]",
+        border_style="green",
+        expand=False,
+    )
+
+    console.print("\n[bold green]-- Extracted Information --[/bold green]")
+    console.print(table)
+    console.print(summary_panel)
+    console.print("[bold green]---------------------------[/bold green]\n")
+
+    return state
+
+
+def reset_session(state: GraphState) -> GraphState:
+    """
+    Resets the graph state to its initial values, preserving the session ID.
+    """
+    print("Resetting session...")
+    session_id = state.get("session_id")
+    if not session_id:
+        # This should theoretically never happen if the graph is initialized correctly.
+        raise ValueError("Session ID is missing and cannot be reset.")
+
+    console.print("[cyan]Resetting session. Please enter new email content.[/cyan]")
+    # This is a simplified version of get_initial_state from cli.py
+    return {
+        "session_id": session_id,
+        "user_input": None,
+        "original_email": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+
+def handle_unclear(state: GraphState) -> GraphState:
+    """
+    Handles cases where the user's intent is unclear.
+    """
+    print("Handling unclear intent...")
+    console.print(
+        "[bold yellow]I'm not sure what you mean. You can:\n"
+        "- Provide a new email or file path.\n"
+        "- Ask to 'show info'.\n"
+        "- Ask to 'save draft'.\n"
+        "- Type 'new' to start over.[/bold yellow]"
+    )
     return state

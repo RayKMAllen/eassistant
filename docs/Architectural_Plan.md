@@ -17,17 +17,21 @@ graph TD
     end
 
     subgraph Core Logic [Graph Nodes]
-        C[Parse Input]
-        D[Extract Entities]
-        E[Summarize]
-        F[Draft Reply]
+        C[Route Intent]
+        D[Parse Input]
+        E[Extract & Summarize]
+        F[Generate Draft]
         G[Refine Draft]
-        H[Handle Error]
+        H[Show Info]
+        I[Save Draft]
+        J[Reset Session]
+        K[Handle Unclear]
+        L[Handle Error]
     end
 
     subgraph Services & Adapters
-        I[LLM Service - Bedrock/Claude]
-        J[Storage Service]
+        M[LLM Service - Bedrock/Claude]
+        N[Storage Service]
     end
 
     subgraph Data Persistence
@@ -40,15 +44,15 @@ graph TD
     end
 
     A --> B
-    B --> C; B --> D; B --> E; B --> F; B --> G; B --> H
-    C --> I
-    D --> I
-    E --> I
-    F --> I
-    G --> I
+    B --> C
+    C --> D; C --> E; C --> F; C --> G; C --> H; C --> I; C --> J; C --> K; C --> L
+    D --> M
+    E --> M
+    F --> M
+    G --> M
     B -- Manages --> M
-    J --> K; J --> L
-    B -- Uses --> J
+    N --> K; N --> L
+    B -- Uses --> N
 ```
 
 ### Responsibilities:
@@ -68,6 +72,9 @@ The conversational flow is modeled as a state machine.
 
 **State Definition (`GraphState`):**
 
+-   `session_id`: A unique identifier for the conversation.
+-   `user_input`: The raw text input from the user in the current turn.
+-   `intent`: The classified intent of the user (e.g., `new_email`, `refine_draft`).
 -   `original_email`: The raw input email text.
 -   `email_path`: Optional path to the input file (e.g., PDF).
 -   `key_info`: A structured object with sender name, sender contact details, receiver name, receiver contact details, subject.
@@ -76,40 +83,46 @@ The conversational flow is modeled as a state machine.
 -   `current_tone`: The active tone for drafting (e.g., 'professional').
 -   `user_feedback`: The latest input from the user for refinement.
 -   `error_message`: A description of the last error, if any.
--   `session_id`: A unique identifier for the conversation.
 
 **Nodes:**
 
-| Node                 | Input (from State)                               | Output (to State)                                     | Description                                                                 |
-| -------------------- | ------------------------------------------------ | ----------------------------------------------------- | --------------------------------------------------------------------------- |
-| `parse_input`        | `original_email`, `email_path`                   | `original_email` (if from PDF)                        | Reads input text or extracts text from a PDF file.                          |
-| `extract_and_summarize` | `original_email`                                 | `key_info`, `summary`                       | Calls the LLM to perform entity extraction and summarization in one step.   |
-| `ask_for_tone`         | `summary`, `key_info`                            | `current_tone`                                        | Asks the user to specify a tone for the draft. Defaults if none provided.   |
-| `generate_initial_draft` | `key_info`, `summary`, `current_tone`            | `draft_history` (appends new draft)                   | Creates the first reply draft based on the extracted context and tone.      |
-| `refine_draft`       | `draft_history` (last draft), `user_feedback`    | `draft_history` (appends refined draft)               | Takes user feedback to modify the latest draft (e.g., change tone, content). |
-| `save_draft`         | `draft_history` (last draft)                     | -                                                     | Saves the final draft to the local filesystem or S3.                        |
-| `handle_error`       | `error_message`                                  | -                                                     | Informs the user about an error and provides guidance.                      |
+| Node | Input (from State) | Output (to State) | Description |
+| --- | --- | --- | --- |
+| `route_user_intent` | `user_input`, `draft_history` | `intent`, `original_email`, `user_feedback` | **Entry Point**. Classifies the user's intent and populates other state fields. |
+| `parse_input` | `original_email` | `original_email` (if from PDF) | Reads input text or extracts text from a PDF file. |
+| `extract_and_summarize` | `original_email` | `key_info`, `summary` | Calls the LLM to perform entity extraction and summarization. |
+| `ask_for_tone` | `summary`, `key_info` | `current_tone` | Asks the user to specify a tone for the draft. |
+| `generate_initial_draft` | `key_info`, `summary`, `current_tone` | `draft_history` (appends new draft) | Creates the first reply draft. |
+| `refine_draft` | `draft_history`, `user_feedback` | `draft_history` (appends refined draft) | Takes user feedback to modify the latest draft. |
+| `show_info` | `key_info`, `summary` | - | Displays the extracted information to the user. |
+| `save_draft` | `draft_history` | - | Saves the final draft to the local filesystem or S3. |
+| `reset_session` | `session_id` | (resets all other fields) | Clears the state to start a new conversation. |
+| `handle_unclear` | - | - | Informs the user that their intent was not understood. |
+| `handle_error` | `error_message` | - | Informs the user about an error. |
 
 **Edges (Transitions):**
 
+The graph is now driven by a conditional entry point that routes based on the user's classified intent.
+
 ```mermaid
 graph TD
-    Start --> ParseInput
-    ParseInput -- Success --> ExtractAndSummarize
-    ParseInput -- Failure --> HandleError
-    ExtractAndSummarize -- Success --> AskForTone
-    ExtractAndSummarize -- Failure --> HandleError
-    AskForTone --> GenerateInitialDraft
-    GenerateInitialDraft -- Success --> WaitForUserInput
-    GenerateInitialDraft -- Failure --> HandleError
-    WaitForUserInput -- "refine" --> RefineDraft
-    WaitForUserInput -- "save" --> SaveDraft
-    WaitForUserInput -- "new email" --> ParseInput
-    WaitForUserInput -- "exit" --> End
-    RefineDraft -- Success --> WaitForUserInput
-    RefineDraft -- Failure --> HandleError
-    SaveDraft --> WaitForUserInput
-    HandleError --> WaitForUserInput
+    A[User Input] --> B[route_user_intent];
+    B --> C{route_by_intent};
+    C -- new_email --> D[parse_input];
+    C -- refine_draft --> E[refine_draft];
+    C -- show_info --> F[show_info];
+    C -- save_draft --> G[save_draft];
+    C -- reset_session --> H[reset_session];
+    C -- unclear --> I[handle_unclear];
+    D --> J[extract_and_summarize];
+    J --> K[ask_for_tone];
+    K --> L[generate_initial_draft];
+    L --> M[End];
+    E --> M;
+    F --> M;
+    G --> M;
+    H --> M;
+    I --> M;
 ```
 
 ---
