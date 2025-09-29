@@ -463,7 +463,8 @@
             "M2.10"
           ],
           "definition_of_done": "The prompt for the 'route_action' node is updated with examples and instructions to correctly classify inputs like 'load example.pdf' as 'process_new_email'.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T14:11:47.796Z"
         },
         {
           "id": "M5.2",

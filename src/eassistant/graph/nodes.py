@@ -50,13 +50,22 @@ def route_action(state: GraphState) -> GraphState:
     prompt = f"""
         Based on the provided context and user input, classify the user's
         primary intent into ONE of the following categories:
-        - process_new_email: User wants to start a new email from text/PDF.
+        - process_new_email: User wants to start a new email, either by
+          providing raw text or by asking to load a file (e.g.,
+          'load my_document.pdf').
         - refine_draft: User wants to change the existing draft.
         - show_info: User wants to see the extracted summary/info.
         - save_draft: User wants to save the current draft.
         - reset_session: User wants to start over completely.
         - handle_idle_chat: User is making small talk or asking for help.
         - unclear: The intent cannot be determined.
+
+        Here are some examples of user input and the correct classification:
+        - User input: "load report.pdf" -> Intent: "process_new_email"
+        - User input: "Can you look at C:\\Users\\Me\\file.pdf"
+          -> Intent: "process_new_email"
+        - User input: "make it more formal" -> Intent: "refine_draft"
+        - User input: "show me the summary again" -> Intent: "show_info"
 
         Context:
         {context}
