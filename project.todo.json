@@ -356,7 +356,8 @@
             "M2.11"
           ],
           "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T13:08:17.788Z"
         },
         {
           "id": "M3.7",

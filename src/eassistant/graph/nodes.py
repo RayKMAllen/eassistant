@@ -449,6 +449,7 @@ def handle_unclear(state: GraphState) -> GraphState:
         "- Ask to 'save draft'.\n"
         "- Type 'new' to start over.[/bold yellow]"
     )
+    state["intent"] = "unclear"
     return state
 
 

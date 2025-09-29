@@ -460,3 +460,153 @@ def test_idle_chat_pipeline_integration(mocked_llm_service: MagicMock, capsys) -
 
     # 7. Verify that the LLM was only called once (for routing)
     mocked_llm_service.invoke.assert_called_once()
+
+
+def test_incomplete_llm_json_response_error_handling(
+    mocked_llm_service: MagicMock, capsys
+) -> None:
+    """
+    Tests that the graph handles a valid JSON response from the LLM
+    that is missing expected keys.
+    """
+    # 1. Arrange: Set up the mock to return incomplete JSON
+    from eassistant.graph import nodes
+
+    # First call (router) is OK, second call (extractor) is incomplete.
+    mocked_llm_service.invoke.side_effect = [
+        json.dumps({"intent": "process_new_email"}),
+        json.dumps({"sender_name": "Test Sender"}),  # Missing 'summary'
+    ]
+    nodes.llm_service = mocked_llm_service
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define initial state
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        user_input="A test email.",
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert that the error was caught and handled
+    assert final_state is not None
+    assert final_state.get("error_message") is None
+
+    captured = capsys.readouterr()
+    assert "Missing summary or entities to generate a draft" in captured.out
+
+
+def test_non_pdf_file_input_is_treated_as_text(
+    mocked_llm_service: MagicMock,
+) -> None:
+    """
+    Tests that a path to a non-PDF file is treated as raw text input
+    and not a file to be parsed.
+    """
+    # 1. Arrange: Mock the file system to report a non-PDF file
+    with patch("eassistant.graph.nodes.Path") as mock_path:
+        mock_path.return_value.is_file.return_value = True
+        mock_path.return_value.suffix = ".txt"  # Not a .pdf
+
+        # 2. Set up the LLM mock
+        from eassistant.graph import builder, nodes
+
+        mocked_llm_service.invoke.side_effect = [
+            json.dumps({"intent": "process_new_email"}),
+            json.dumps({"summary": "Summary of the text file."}),
+            "Draft from the text file.",
+        ]
+        nodes.llm_service = mocked_llm_service
+        builder.ask_for_tone = mocked_ask_for_tone
+
+        # 3. Build the graph
+        app = build_graph()
+
+        # 4. Define initial state with the path to a .txt file
+        file_path = "path/to/document.txt"
+        initial_state = GraphState(
+            session_id=uuid.uuid4(),
+            user_input=file_path,
+        )
+
+        # 5. Run the graph
+        final_state = app.invoke(initial_state)
+
+        # 6. Assert that the file path itself was treated as the email content
+        assert final_state is not None
+        assert final_state["original_email"] == file_path
+        assert final_state["summary"] == "Summary of the text file."
+        assert final_state["draft_history"][0]["content"] == "Draft from the text file."
+
+
+def test_action_without_context_is_handled(
+    mocked_llm_service: MagicMock, capsys
+) -> None:
+    """
+    Tests that if the user tries to perform an action out of context
+    (e.g., refine before a draft exists), the intent is classified as unclear.
+    """
+    # 1. Arrange: Mock the LLM to return a 'refine_draft' intent
+    from eassistant.graph import nodes
+
+    mocked_llm_service.invoke.return_value = json.dumps({"intent": "refine_draft"})
+    nodes.llm_service = mocked_llm_service
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define initial state (note: draft_history is empty)
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        user_input="Make it better.",
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert that the error was caught and handled
+    assert final_state is not None
+    assert final_state.get("error_message") is None  # Error is handled and cleared
+
+    # 6. Verify the user is prompted appropriately
+    captured = capsys.readouterr()
+    assert "An error occurred: No draft to refine." in captured.out
+
+
+def test_unexpected_routing_intent_is_handled(
+    mocked_llm_service: MagicMock, capsys
+) -> None:
+    """
+    Tests that if the router returns an intent that has no corresponding
+    edge in the graph, the flow is routed to the 'handle_unclear' node.
+    """
+    # 1. Arrange: Mock the LLM to return an unknown intent
+    from eassistant.graph import nodes
+
+    mocked_llm_service.invoke.return_value = json.dumps(
+        {"intent": "some_unknown_action"}
+    )
+    nodes.llm_service = mocked_llm_service
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define initial state
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        user_input="Do something weird.",
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert that the final node was 'handle_unclear'
+    assert final_state is not None
+    assert final_state.get("intent") == "unclear"
+
+    # 6. Verify the user is prompted appropriately
+    captured = capsys.readouterr()
+    assert "I'm not sure what you mean." in captured.out
