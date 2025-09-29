@@ -48,7 +48,9 @@ def test_save_s3_file():
     content = "This is an S3 test draft."
     file_key = "drafts/s3_draft.txt"
 
-    storage_service.save(content=content, file_path=file_key, s3_bucket=bucket_name)
+    storage_service.save(
+        content=content, file_path=file_key, target="s3", s3_bucket=bucket_name
+    )
 
     # Verify the object was uploaded
     response = s3.get_object(Bucket=bucket_name, Key=file_key)
@@ -67,4 +69,6 @@ def test_save_s3_boto_error():
     bucket_name = "non-existent-bucket"
 
     with pytest.raises(Exception):
-        storage_service.save(content=content, file_path=file_key, s3_bucket=bucket_name)
+        storage_service.save(
+            content=content, file_path=file_key, target="s3", s3_bucket=bucket_name
+        )

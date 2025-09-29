@@ -16,6 +16,7 @@ class StorageService:
         self,
         content: str,
         file_path: str,
+        target: str = "local",
         s3_bucket: Optional[str] = None,
     ) -> None:
         """
@@ -24,9 +25,12 @@ class StorageService:
         Args:
             content: The string content to save.
             file_path: The local file path or S3 object key.
-            s3_bucket: If provided, the content will be uploaded to this S3 bucket.
+            target: The storage target, either "local" or "s3".
+            s3_bucket: If target is "s3", the content will be uploaded to this bucket.
         """
-        if s3_bucket:
+        if target == "s3":
+            if not s3_bucket:
+                raise ValueError("s3_bucket must be provided for S3 target.")
             self.s3_client.put_object(
                 Bucket=s3_bucket, Key=file_path, Body=content.encode("utf-8")
             )

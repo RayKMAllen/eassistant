@@ -385,6 +385,7 @@ def save_draft(state: GraphState) -> GraphState:
     """
     print("Saving draft...")
     draft_history = state.get("draft_history")
+    save_target = state.get("save_target", "local")
 
     if not draft_history:
         state["error_message"] = "No draft to save."
@@ -399,10 +400,22 @@ def save_draft(state: GraphState) -> GraphState:
     # For now, save to a local 'outputs' directory.
     # This could be configured later.
     output_path = Path("outputs") / filename
+    s3_bucket = "my-email-assistant-drafts"  # Replace with your actual bucket name
 
     try:
-        storage_service.save(content=latest_draft, file_path=str(output_path))
-        print(f"Draft saved to {output_path}")
+        if save_target == "s3":
+            storage_service.save(
+                content=latest_draft,
+                file_path=filename,
+                target="s3",
+                s3_bucket=s3_bucket,
+            )
+            print(f"Draft saved to S3 bucket {s3_bucket} as {filename}")
+        else:
+            storage_service.save(
+                content=latest_draft, file_path=str(output_path), target="local"
+            )
+            print(f"Draft saved to {output_path}")
     except Exception as e:
         state["error_message"] = f"Failed to save draft: {e}"
 
