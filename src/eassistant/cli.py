@@ -54,6 +54,13 @@ def shell() -> None:
             # The graph now handles all conversational logic
             current_input_state = state.copy()
             current_input_state["user_input"] = user_input
+
+            # Special handling for 'save' command for better UX
+            if user_input.lower() == "save":
+                if not state.get("draft_history"):
+                    console.print("[bold yellow]No draft to save.[/bold yellow]")
+                    continue  # Skip graph invocation and re-prompt
+
             final_state = graph.invoke(current_input_state)
 
             if final_state:
@@ -66,10 +73,12 @@ def shell() -> None:
                     state["error_message"] = None
                 # Display the latest draft if one exists
                 elif draft_history := state.get("draft_history"):
-                    latest_draft = draft_history[-1]
-                    console.print("\n[bold green]-- Latest Draft --[/bold green]")
-                    console.print(latest_draft["content"])
-                    console.print("[bold green]--------------------[/bold green]\n")
+                    # Avoid re-printing the draft if it was just saved
+                    if user_input.lower() != "save":
+                        latest_draft = draft_history[-1]
+                        console.print("\n[bold green]-- Latest Draft --[/bold green]")
+                        console.print(latest_draft["content"])
+                        console.print("[bold green]--------------------[/bold green]\n")
 
         except (KeyboardInterrupt, EOFError):  # pragma: no cover
             break

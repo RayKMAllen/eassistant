@@ -73,6 +73,38 @@ def test_shell_handles_graph_error(mock_graph):
         assert "Error: Something went wrong" in result.stdout
 
 
+def test_shell_save_command_with_draft(mock_graph):
+    """Test the 'save' command when a draft exists."""
+    # Simulate the graph having a draft, then receiving the 'save' command
+    mock_graph.invoke.side_effect = [
+        {"draft_history": [{"content": "A draft."}], "error_message": None},
+        {"draft_history": [{"content": "A draft."}], "error_message": None},
+    ]
+
+    with patch("eassistant.cli.build_graph", return_value=mock_graph):
+        user_input = "First email\nsave\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        # Ensure the draft is printed once, but not again after saving
+        assert result.stdout.count("-- Latest Draft --") == 1
+        # Check that the 'save' input was passed to the graph
+        last_call_args = mock_graph.invoke.call_args[0][0]
+        assert last_call_args["user_input"] == "save"
+
+
+def test_shell_save_command_no_draft(mock_graph):
+    """Test the 'save' command when no draft exists."""
+    # The graph is never invoked because the CLI handles this case
+    with patch("eassistant.cli.build_graph", return_value=mock_graph):
+        user_input = "save\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert "No draft to save." in result.stdout
+        mock_graph.invoke.assert_not_called()
+
+
 # The complex multi-turn and command-specific tests are removed from the CLI
 # tests because this logic now resides in the graph nodes, which are tested
 # separately in `test_nodes.py`. The CLI is only responsible for the main
