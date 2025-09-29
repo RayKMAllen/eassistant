@@ -474,7 +474,8 @@
             "M2.2"
           ],
           "definition_of_done": "The 'parse_input' node is modified to correctly extract the filename from the full user input (e.g., get 'example.pdf' from 'load example.pdf').",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T14:16:29.145Z"
         },
         {
           "id": "M5.3",

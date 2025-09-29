@@ -122,15 +122,21 @@ def parse_input(state: GraphState) -> GraphState:
 
     # After stripping, the original_email in the state should be updated
     state["original_email"] = user_input
-    input_path = Path(user_input)
+
+    # Handle 'load <filename>' command
+    potential_path = user_input
+    if user_input.lower().startswith("load ") and len(user_input.split()) > 1:
+        potential_path = user_input.split(maxsplit=1)[1]
+
+    input_path = Path(potential_path)
 
     # Check if the input looks like a path before checking if it's a file
     # This avoids treating a sentence with a period as a file path.
-    is_potential_path = "." in user_input and " " not in user_input
+    is_potential_path = "." in potential_path and " " not in potential_path
 
     if is_potential_path and input_path.suffix.lower() == ".pdf":
         if not input_path.is_file():
-            state["error_message"] = f"File not found: {user_input}"
+            state["error_message"] = f"File not found: {potential_path}"
             return state
         try:
             state["original_email"] = extract_text_from_pdf(input_path)

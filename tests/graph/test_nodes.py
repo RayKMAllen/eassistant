@@ -476,6 +476,40 @@ def test_parse_input_with_pdf(mocker: MockerFixture, tmp_path) -> None:
     assert result_state["email_path"] == str(pdf_file)
 
 
+def test_parse_input_with_load_command(mocker: MockerFixture, tmp_path) -> None:
+    """
+    Tests that `parse_input` can extract a filename from a 'load' command.
+    """
+    # Arrange
+    pdf_content = "This is text from a PDF."
+    pdf_file = tmp_path / "test.pdf"
+    mocker.patch(
+        "eassistant.graph.nodes.extract_text_from_pdf", return_value=pdf_content
+    )
+    pdf_file.touch()
+
+    initial_state: GraphState = {
+        "original_email": f"load {pdf_file}",
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    result_state = parse_input(initial_state)
+
+    # Assert
+    assert result_state["original_email"] == pdf_content
+    assert result_state["email_path"] == str(pdf_file)
+
+
 def test_parse_input_with_non_pdf_file(tmp_path) -> None:
     """
     Tests that a non-PDF file is treated as plain text.
