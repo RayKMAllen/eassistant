@@ -2,6 +2,7 @@ import uuid
 
 import typer
 from rich.console import Console
+from rich.prompt import Prompt
 
 from eassistant.graph.builder import build_graph
 from eassistant.graph.state import GraphState
@@ -43,7 +44,7 @@ def shell() -> None:
             else:
                 prompt = "[bold yellow]Feedback ('new' to reset) >>> [/bold yellow]"
 
-            user_input = console.input(prompt)
+            user_input = Prompt.ask(prompt, console=console)
 
             if user_input.lower() in ["exit", "quit"]:
                 break

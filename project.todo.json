@@ -229,7 +229,8 @@
             "M1.4"
           ],
           "definition_of_done": "After the `extract_and_summarize` node runs, the extracted `key_info` and `summary` are printed to the console for the user to see.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T09:04:51.076Z"
         }
       ]
     },

@@ -1,6 +1,7 @@
 from langgraph.graph import END, StateGraph
 
 from .nodes import (
+    display_summary,
     extract_and_summarize,
     generate_initial_draft,
     handle_error,
@@ -37,6 +38,7 @@ def build_graph() -> StateGraph:
     # Add nodes
     workflow.add_node("parse_input", parse_input)
     workflow.add_node("extract_and_summarize", extract_and_summarize)
+    workflow.add_node("display_summary", display_summary)
     workflow.add_node("generate_initial_draft", generate_initial_draft)
     workflow.add_node("refine_draft", refine_draft)
     workflow.add_node("handle_error", handle_error)
@@ -60,8 +62,9 @@ def build_graph() -> StateGraph:
     workflow.add_conditional_edges(
         "extract_and_summarize",
         check_for_errors,
-        {"continue": "generate_initial_draft", "handle_error": "handle_error"},
+        {"continue": "display_summary", "handle_error": "handle_error"},
     )
+    workflow.add_edge("display_summary", "generate_initial_draft")
     workflow.add_conditional_edges(
         "generate_initial_draft",
         check_for_errors,

@@ -23,9 +23,9 @@ def mock_graph():
 def test_shell_exit():
     """Test that the shell exits cleanly."""
     with patch("eassistant.cli.build_graph"):
-        result = runner.invoke(app, ["shell"], input="exit\n")
-        assert isinstance(result.exception, SystemExit)
-        assert result.exception.code == 0
+        result = runner.invoke(app, input="exit\n")
+        assert result.exit_code == 0
+        assert result.exception is None
         assert "Welcome to the e-assistant shell!" in result.stdout
 
 
@@ -34,9 +34,9 @@ def test_shell_new_email_flow(mock_graph):
     with patch("eassistant.cli.build_graph", return_value=mock_graph):
         # Simulate entering a new email, then exiting
         user_input = "This is a test email.\nexit\n"
-        result = runner.invoke(app, ["shell"], input=user_input)
-        assert isinstance(result.exception, SystemExit)
-        assert result.exception.code == 0
+        result = runner.invoke(app, input=user_input)
+        assert result.exit_code == 0
+        assert result.exception is None
         assert "New Email >>>" in result.stdout
         assert "-- Latest Draft --" in result.stdout
         assert "This is a test draft." in result.stdout
@@ -73,9 +73,9 @@ def test_shell_refine_draft_flow(mock_graph):
         mock_graph.invoke.side_effect = invoke_side_effect
 
         user_input = "Initial email\nMake it better\nexit\n"
-        result = runner.invoke(app, ["shell"], input=user_input)
-        assert isinstance(result.exception, SystemExit)
-        assert result.exception.code == 0
+        result = runner.invoke(app, input=user_input)
+        assert result.exit_code == 0
+        assert result.exception is None
         assert "Feedback ('new' to reset) >>>" in result.stdout
         assert "Refined draft." in result.stdout
         assert mock_graph.invoke.call_count == 2
@@ -89,9 +89,9 @@ def test_shell_new_command_resets_state(mock_graph):
     """Test that the 'new' command resets the state."""
     with patch("eassistant.cli.build_graph", return_value=mock_graph):
         user_input = "Initial email\nnew\nAnother email\nexit\n"
-        result = runner.invoke(app, ["shell"], input=user_input)
-        assert isinstance(result.exception, SystemExit)
-        assert result.exception.code == 0
+        result = runner.invoke(app, input=user_input)
+        assert result.exit_code == 0
+        assert result.exception is None
         assert "Resetting session." in result.stdout
         # The prompt should revert to "New Email" after "new"
         # This is tricky to test with a single stdout, but we can check call args
@@ -108,7 +108,7 @@ def test_shell_handles_graph_error(mock_graph):
     mock_graph.invoke.return_value = {"error_message": "Something went wrong"}
     with patch("eassistant.cli.build_graph", return_value=mock_graph):
         user_input = "This will cause an error\nexit\n"
-        result = runner.invoke(app, ["shell"], input=user_input)
-        assert isinstance(result.exception, SystemExit)
-        assert result.exception.code == 0
+        result = runner.invoke(app, input=user_input)
+        assert result.exit_code == 0
+        assert result.exception is None
         assert "Error: Something went wrong" in result.stdout
