@@ -403,7 +403,8 @@
             "M3.7"
           ],
           "definition_of_done": "`pytest --cov` reports coverage of 95% or higher.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T10:36:28.766Z"
         },
         {
           "id": "M5.2",

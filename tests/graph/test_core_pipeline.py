@@ -11,22 +11,8 @@ from eassistant.services.llm import LLMService
 
 @pytest.fixture()  # type: ignore
 def mocked_llm_service() -> MagicMock:
-    """Fixture to create a mocked LLMService."""
-    mock_service = MagicMock(spec=LLMService)
-    mock_service.invoke.side_effect = [
-        json.dumps(
-            {
-                "sender_name": "Test Sender",
-                "sender_contact": "test@example.com",
-                "receiver_name": "Test Receiver",
-                "receiver_contact": "receiver@example.com",
-                "subject": "Test Subject",
-                "summary": "This is a test summary.",
-            }
-        ),
-        "This is a test draft.",
-    ]
-    return mock_service
+    """Fixture to create a mocked LLMService with no default behaviors."""
+    return MagicMock(spec=LLMService)
 
 
 def mocked_ask_for_tone(state: GraphState) -> GraphState:
@@ -45,25 +31,32 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     # 1. Replace the actual LLMService with our mock
     from eassistant.graph import builder, nodes
 
+    mocked_llm_service.invoke.side_effect = [
+        json.dumps({"intent": "new_email"}),  # 1. route_user_intent
+        json.dumps(  # 2. extract_and_summarize
+            {
+                "sender_name": "Test Sender",
+                "sender_contact": "test@example.com",
+                "receiver_name": "Test Receiver",
+                "receiver_contact": "receiver@example.com",
+                "subject": "Test Subject",
+                "summary": "This is a test summary.",
+            }
+        ),
+        "This is a test draft.",  # 3. generate_initial_draft
+    ]
     nodes.llm_service = mocked_llm_service
     builder.ask_for_tone = mocked_ask_for_tone
 
     # 2. Build the graph
     app = build_graph()
 
-    # 3. Define the initial state, providing all required fields
+    # 3. Define the initial state
     initial_state = GraphState(
         session_id=uuid.uuid4(),
-        original_email=(
+        user_input=(
             "From: test@example.com\nSubject: Test Subject\n\nThis is a test email."
         ),
-        email_path=None,
-        key_info=None,
-        summary=None,
-        draft_history=[],
-        current_tone=None,
-        user_feedback=None,
-        error_message=None,
     )
 
     # 4. Run the graph
@@ -79,7 +72,7 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     assert final_state["draft_history"][0]["content"] == "This is a test draft."
 
     # 6. Verify that the LLM service was called correctly
-    assert mocked_llm_service.invoke.call_count == 2
+    assert mocked_llm_service.invoke.call_count == 3
 
 
 def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
@@ -95,7 +88,8 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     nodes.llm_service = mocked_llm_service
     builder.ask_for_tone = mocked_ask_for_tone
     mocked_llm_service.invoke.side_effect = [
-        json.dumps(
+        json.dumps({"intent": "new_email"}),  # 1. route (initial)
+        json.dumps(  # 2. extract
             {
                 "sender_name": "Test Sender",
                 "sender_contact": "test@example.com",
@@ -105,8 +99,9 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
                 "summary": "This is a test summary.",
             }
         ),
-        "This is the initial draft.",
-        "This is the refined draft.",  # The third call is for refinement
+        "This is the initial draft.",  # 3. generate
+        json.dumps({"intent": "refine_draft"}),  # 4. route (refine)
+        "This is the refined draft.",  # 5. refine
     ]
 
     # 2. Build the graph
@@ -115,14 +110,7 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     # 3. First turn: Generate the initial draft
     initial_state = GraphState(
         session_id=uuid.uuid4(),
-        original_email="A test email.",
-        email_path=None,
-        key_info=None,
-        summary=None,
-        draft_history=[],
-        current_tone="professional",
-        user_feedback=None,
-        error_message=None,
+        user_input="A test email.",
     )
     first_turn_state = app.invoke(initial_state)
 
@@ -134,8 +122,10 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     )
 
     # 5. Second turn: Provide feedback to refine the draft
+    # 5. Second turn: Provide feedback to refine the draft
+    # The user's raw input goes into the 'user_input' field
     second_turn_input_state = first_turn_state.copy()
-    second_turn_input_state["user_feedback"] = "Make it more formal."
+    second_turn_input_state["user_input"] = "Make it more formal."
     second_turn_state = app.invoke(second_turn_input_state)
 
     # 6. Assert the final state after refinement
@@ -146,7 +136,7 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     )
 
     # 7. Verify that the LLM service was called three times
-    assert mocked_llm_service.invoke.call_count == 3
+    assert mocked_llm_service.invoke.call_count == 5
 
 
 def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
@@ -162,7 +152,8 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
     nodes.llm_service = mocked_llm_service
     builder.ask_for_tone = mocked_ask_for_tone
     mocked_llm_service.invoke.side_effect = [
-        # First email
+        # First email flow
+        json.dumps({"intent": "new_email"}),
         json.dumps(
             {
                 "summary": "First email summary.",
@@ -172,7 +163,8 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
             }
         ),
         "First email draft.",
-        # Second email
+        # Second email flow
+        json.dumps({"intent": "new_email"}),
         json.dumps(
             {
                 "summary": "Second email summary.",
@@ -190,9 +182,7 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
     # 3. First email: Run the graph to completion
     first_email_state = GraphState(
         session_id=uuid.uuid4(),
-        original_email="This is the first email.",
-        draft_history=[],
-        user_feedback=None,
+        user_input="This is the first email.",
     )
     final_state_first_email = app.invoke(first_email_state)
 
@@ -206,7 +196,8 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
     # 5. Second email: Simulate starting a new email by resetting the relevant state
     # In the CLI, this would be handled by the 'new' command logic.
     second_email_initial_state = final_state_first_email.copy()
-    second_email_initial_state["original_email"] = "This is the second email."
+    second_email_initial_state["user_input"] = "This is the second email."
+    # Reset fields as if starting a new conversation
     second_email_initial_state["draft_history"] = []
     second_email_initial_state["user_feedback"] = None
     second_email_initial_state["summary"] = None
@@ -222,7 +213,7 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
     )
 
     # 7. Verify the LLM was called for both emails
-    assert mocked_llm_service.invoke.call_count == 4
+    assert mocked_llm_service.invoke.call_count == 6
 
 
 def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None:
@@ -248,6 +239,11 @@ def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None
         # 2. Replace the actual LLMService with our mock
         from eassistant.graph import builder, nodes
 
+        mocked_llm_service.invoke.side_effect = [
+            json.dumps({"intent": "new_email"}),
+            json.dumps({"summary": "This is a test summary."}),
+            "This is a test draft.",
+        ]
         nodes.llm_service = mocked_llm_service
         builder.ask_for_tone = mocked_ask_for_tone
 
@@ -257,14 +253,7 @@ def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None
         # 4. Define the initial state with a path to a PDF
         initial_state = GraphState(
             session_id=uuid.uuid4(),
-            original_email="dummy/test.pdf",  # Input is a file path
-            email_path=None,
-            key_info=None,
-            summary=None,
-            draft_history=[],
-            current_tone=None,
-            user_feedback=None,
-            error_message=None,
+            user_input="dummy/test.pdf",  # Input is a file path
         )
 
         # 5. Run the graph
@@ -282,7 +271,7 @@ def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None
         # 7. Verify mocks were called
         mock_path.assert_called_with("dummy/test.pdf")
         mock_extract.assert_called_with(mock_path.return_value)
-        assert mocked_llm_service.invoke.call_count == 2
+        assert mocked_llm_service.invoke.call_count == 3
 
 
 def test_error_handling_integration(capsys) -> None:
@@ -297,7 +286,12 @@ def test_error_handling_integration(capsys) -> None:
 
     mock_llm = MagicMock(spec=LLMService)
     error_message = "LLM is down!"
-    mock_llm.invoke.side_effect = Exception(error_message)
+    # The first call to the router should succeed, but the second
+    # to the extractor should fail
+    mock_llm.invoke.side_effect = [
+        json.dumps({"intent": "new_email"}),
+        Exception(error_message),
+    ]
     nodes.llm_service = mock_llm
 
     # 2. Build the graph
@@ -306,10 +300,7 @@ def test_error_handling_integration(capsys) -> None:
     # 3. Define the initial state
     initial_state = GraphState(
         session_id=uuid.uuid4(),
-        original_email="A test email that will cause a failure.",
-        draft_history=[],
-        user_feedback=None,
-        error_message=None,
+        user_input="A test email that will cause a failure.",
     )
 
     # 4. Run the graph
@@ -325,8 +316,8 @@ def test_error_handling_integration(capsys) -> None:
     # The error is caught in extract_and_summarize and wrapped
     expected_output = "An error occurred: An unexpected error occurred: LLM is down!"
     assert expected_output in captured.out
-    # Verify the LLM was called once (and failed)
-    mock_llm.invoke.assert_called_once()
+    # Verify the LLM was called twice (router succeeded, extractor failed)
+    assert mock_llm.invoke.call_count == 2
 
 
 def test_invalid_file_path_error_handling(capsys) -> None:
@@ -340,14 +331,21 @@ def test_invalid_file_path_error_handling(capsys) -> None:
         # Also need to mock the __str__ to ensure the error message is correct
         mock_path.return_value.__str__.return_value = "nonexistent/file.pdf"
 
+        # This test does not mock the LLM, but the router node still needs to run.
+        # We need a mock LLM that can be called by the router.
+        mock_llm = MagicMock(spec=LLMService)
+        mock_llm.invoke.return_value = json.dumps({"intent": "new_email"})
+        from eassistant.graph import nodes
+
+        nodes.llm_service = mock_llm
+
         # 2. Build the graph
         app = build_graph()
 
         # 3. Define initial state with the invalid path
         initial_state = GraphState(
             session_id=uuid.uuid4(),
-            original_email="nonexistent/file.pdf",
-            draft_history=[],
+            user_input="nonexistent/file.pdf",
         )
 
         # 4. Run the graph
@@ -371,7 +369,11 @@ def test_malformed_llm_json_response_error_handling(
     # 1. Arrange: Set up the mock to return a non-JSON string
     from eassistant.graph import nodes
 
-    mocked_llm_service.invoke.side_effect = ["This is not valid JSON."]
+    # First call (router) is OK, second call (extractor) is malformed.
+    mocked_llm_service.invoke.side_effect = [
+        json.dumps({"intent": "new_email"}),
+        "This is not valid JSON.",
+    ]
     nodes.llm_service = mocked_llm_service
 
     # 2. Build the graph
@@ -380,8 +382,7 @@ def test_malformed_llm_json_response_error_handling(
     # 3. Define initial state
     initial_state = GraphState(
         session_id=uuid.uuid4(),
-        original_email="A test email.",
-        draft_history=[],
+        user_input="A test email.",
     )
 
     # 4. Run the graph
@@ -399,17 +400,23 @@ def test_empty_user_input_error_handling(capsys) -> None:
     """
     Tests that the graph handles empty or whitespace-only user input.
     """
-    # 1. Build the graph
+    # 1. Arrange: Mock the router to force the 'new_email' path
+    from eassistant.graph import nodes
+
+    mock_llm = MagicMock(spec=LLMService)
+    mock_llm.invoke.return_value = json.dumps({"intent": "new_email"})
+    nodes.llm_service = mock_llm
+
+    # 2. Build the graph
     app = build_graph()
 
-    # 2. Define initial state with empty input
+    # 3. Define initial state with empty input
     initial_state = GraphState(
         session_id=uuid.uuid4(),
-        original_email="   ",  # Whitespace only
-        draft_history=[],
+        user_input="   ",  # Whitespace only
     )
 
-    # 3. Run the graph
+    # 4. Run the graph
     final_state = app.invoke(initial_state)
 
     # 4. Assert that the error was caught and handled

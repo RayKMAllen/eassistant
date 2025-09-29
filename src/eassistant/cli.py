@@ -58,9 +58,13 @@ def shell() -> None:
             if final_state:
                 state.update(final_state)
 
+                # Handle and display errors from the graph
+                if error_message := state.get("error_message"):
+                    console.print(f"[bold red]Error:[/bold red] {error_message}")
+                    # Clear the error after displaying it
+                    state["error_message"] = None
                 # Display the latest draft if one exists
-                draft_history = state.get("draft_history")
-                if draft_history:
+                elif draft_history := state.get("draft_history"):
                     latest_draft = draft_history[-1]
                     console.print("\n[bold green]-- Latest Draft --[/bold green]")
                     console.print(latest_draft["content"])
