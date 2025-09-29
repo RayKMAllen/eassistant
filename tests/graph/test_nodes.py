@@ -9,6 +9,7 @@ from eassistant.graph.nodes import (
     extract_and_summarize,
     generate_initial_draft,
     handle_error,
+    handle_idle_chat,
     handle_unclear,
     parse_input,
     refine_draft,
@@ -911,3 +912,30 @@ def test_ask_for_tone_no_input_defaults_to_professional(
 
     # Assert
     assert result_state["current_tone"] == "professional"
+
+
+def test_handle_idle_chat(capsys) -> None:
+    """
+    Tests that handle_idle_chat prints a simple conversational response.
+    """
+    # Arrange
+    initial_state: GraphState = {
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": "hello",
+        "original_email": None,
+        "email_path": None,
+        "key_info": None,
+        "summary": None,
+        "draft_history": [],
+        "current_tone": "professional",
+        "user_feedback": None,
+        "error_message": None,
+        "intent": "handle_idle_chat",
+    }
+
+    # Act
+    handle_idle_chat(initial_state)
+
+    # Assert
+    captured = capsys.readouterr()
+    assert "Hello! How can I help you with your email?" in captured.out

@@ -433,3 +433,12 @@ def handle_unclear(state: GraphState) -> GraphState:
         "- Type 'new' to start over.[/bold yellow]"
     )
     return state
+
+
+def handle_idle_chat(state: GraphState) -> GraphState:
+    """
+    Handles idle chat by providing a simple conversational response.
+    """
+    print("Handling idle chat...")
+    console.print("Hello! How can I help you with your email?")
+    return state
