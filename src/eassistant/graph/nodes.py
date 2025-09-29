@@ -416,6 +416,7 @@ def reset_session(state: GraphState) -> GraphState:
         "user_feedback": None,
         "error_message": None,
         "intent": None,
+        "conversation_summary": None,
     }
 
 

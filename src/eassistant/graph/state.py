@@ -38,3 +38,5 @@ class GraphState(TypedDict):
     current_tone: Optional[str]
     user_feedback: Optional[str]
     error_message: Optional[str]
+    # A running summary of the conversation for context-aware routing.
+    conversation_summary: Optional[str]
