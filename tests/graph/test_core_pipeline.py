@@ -610,3 +610,77 @@ def test_unexpected_routing_intent_is_handled(
     # 6. Verify the user is prompted appropriately
     captured = capsys.readouterr()
     assert "I'm not sure what you mean." in captured.out
+
+
+@pytest.mark.parametrize(
+    "intent, initial_state_extra, expected_output, mock_node",
+    [
+        (
+            "show_info",
+            {
+                "key_info": {"sender_name": "John Doe"},
+                "summary": "This is a summary.",
+            },
+            "Key Info",
+            "eassistant.graph.builder.show_info",
+        ),
+        (
+            "save_draft",
+            {"draft_history": [{"content": "This is a draft."}]},
+            "Draft saved successfully",
+            "eassistant.graph.builder.save_draft",
+        ),
+        (
+            "reset_session",
+            {"summary": "Existing summary"},
+            "Starting a new session",
+            "eassistant.graph.builder.reset_session",
+        ),
+    ],
+)
+def test_single_action_intents(
+    intent,
+    initial_state_extra,
+    expected_output,
+    mock_node,
+    mocked_llm_service: MagicMock,
+    capsys,
+) -> None:
+    """
+    Tests single-action intents like 'show_info', 'save_draft', and 'reset_session'.
+    """
+    # 1. Arrange: Mock the LLM to return the specified intent
+    from eassistant.graph import nodes
+
+    mocked_llm_service.invoke.return_value = json.dumps({"intent": intent})
+    nodes.llm_service = mocked_llm_service
+
+    # Mock the target node to prevent side effects (like file writing)
+    with patch(mock_node, autospec=True) as mocked_action_node:
+        # Set a side effect for the mock to print the expected output
+        def print_output_effect(state):
+            print(expected_output)
+            return state
+
+        mocked_action_node.side_effect = print_output_effect
+
+        # 2. Build the graph
+        app = build_graph()
+
+        # 3. Define initial state
+        initial_state = GraphState(
+            session_id=uuid.uuid4(),
+            user_input="Do the action.",
+            **initial_state_extra,
+        )
+
+        # 4. Run the graph
+        final_state = app.invoke(initial_state)
+
+        # 5. Assert that the correct node was called and the state is as expected
+        assert final_state is not None
+        mocked_action_node.assert_called_once()
+
+        # 6. Verify the output
+        captured = capsys.readouterr()
+        assert expected_output in captured.out
