@@ -97,46 +97,6 @@ def extract_and_summarize(state: GraphState) -> GraphState:
     return state
 
 
-def display_summary(state: GraphState) -> GraphState:
-    """
-    Displays the extracted key info and summary to the user.
-    """
-    from rich.console import Console
-    from rich.panel import Panel
-    from rich.table import Table
-
-    console = Console()
-    print("Displaying summary...")
-    key_info = state.get("key_info")
-    summary = state.get("summary")
-
-    if not key_info or not summary:
-        # This case should ideally not be hit if the graph is correct
-        return state
-
-    table = Table(show_header=False, box=None, padding=(0, 1))
-    table.add_column(style="cyan")
-    table.add_column()
-
-    table.add_row("Sender:", key_info.get("sender_name", "N/A"))
-    table.add_row("Recipient:", key_info.get("receiver_name", "N/A"))
-    table.add_row("Subject:", key_info.get("subject", "N/A"))
-
-    summary_panel = Panel(
-        summary,
-        title="[bold]Summary[/bold]",
-        border_style="green",
-        expand=False,
-    )
-
-    console.print("\n[bold green]-- Extracted Information --[/bold green]")
-    console.print(table)
-    console.print(summary_panel)
-    console.print("[bold green]---------------------------[/bold green]\n")
-
-    return state
-
-
 def generate_initial_draft(state: GraphState) -> GraphState:
     """
     Generates an initial email draft based on the extracted summary and entities.

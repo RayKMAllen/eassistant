@@ -112,3 +112,50 @@ def test_shell_handles_graph_error(mock_graph):
         assert result.exit_code == 0
         assert result.exception is None
         assert "Error: Something went wrong" in result.stdout
+
+
+def test_shell_displays_summary_on_first_draft(mock_graph):
+    """Test that the summary is displayed only before the first draft."""
+    # Simulate the graph returning summary info and then a draft
+    mock_graph.invoke.return_value = {
+        "key_info": {
+            "sender_name": "John Doe",
+            "receiver_name": "Jane Smith",
+            "subject": "Test Subject",
+        },
+        "summary": "This is a test summary.",
+        "draft_history": [{"content": "This is the first draft."}],
+        "error_message": None,
+    }
+
+    with patch("eassistant.cli.build_graph", return_value=mock_graph):
+        user_input = "This is a test email.\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        assert result.exit_code == 0
+        assert result.exception is None
+        # Check that the summary and key info are in the output
+        assert "-- Extracted Information --" in result.stdout
+        assert "Sender:" in result.stdout
+        assert "John Doe" in result.stdout
+        assert "Summary" in result.stdout
+        assert "This is a test summary." in result.stdout
+        # Check that the draft is also there
+        assert "-- Latest Draft --" in result.stdout
+        assert "This is the first draft." in result.stdout
+
+        # Now, simulate a refinement, which should NOT show the summary again
+        mock_graph.invoke.return_value = {
+            "draft_history": [
+                {"content": "This is the first draft."},
+                {"content": "This is the refined draft."},
+            ],
+            "error_message": None,
+        }
+
+        user_input = "Initial email\nRefine it\nexit\n"
+        result = runner.invoke(app, input=user_input)
+
+        # The summary should not be printed a second time
+        assert "-- Extracted Information --" not in result.stdout
+        assert "This is the refined draft." in result.stdout

@@ -339,7 +339,8 @@
             "M4.1"
           ],
           "definition_of_done": "Key information and a summary are extracted from the status document and printed to the console.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T09:17:45.000Z"
         },
         {
           "id": "M4.3",
