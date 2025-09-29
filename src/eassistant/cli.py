@@ -124,11 +124,11 @@ def shell() -> None:
                     console.print(latest_draft["content"])
                     console.print("[bold green]--------------------[/bold green]\n")
 
-        except (KeyboardInterrupt, EOFError):
+        except (KeyboardInterrupt, EOFError):  # pragma: no cover
             break
 
     console.print("[bold green]Goodbye![/bold green]")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     app()
