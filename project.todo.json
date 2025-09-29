@@ -511,10 +511,59 @@
           "id": "M6.2",
           "name": "Ensure 100% of tests are passing",
           "dependencies": [
-            "M6.1"
+            "M6.1",
+            "M7"
           ],
           "definition_of_done": "The entire test suite runs successfully with no failures.",
-          "status": "pending"
+          "status": "blocked"
+        }
+      ]
+    },
+    {
+      "id": "M7",
+      "name": "Milestone 7: Bugfix - Conversational Cloud Save",
+      "dependencies": [
+        "M3"
+      ],
+      "definition_of_done": "Conversational commands like 'save to cloud' are correctly interpreted by the LLM router, and the draft is saved to S3.",
+      "tasks": [
+        {
+          "id": "M7.1",
+          "name": "Enhance 'route_action' to extract storage target",
+          "dependencies": [
+            "M2.10"
+          ],
+          "definition_of_done": "The LLM prompt for the 'route_action' node is updated with examples to extract a `save_target` (e.g., 'local', 's3') from conversational input. The Pydantic model used for extraction is updated with an optional `save_target` field.",
+          "status": "todo"
+        },
+        {
+          "id": "M7.2",
+          "name": "Update GraphState to include save_target",
+          "dependencies": [
+            "M1.1",
+            "M7.1"
+          ],
+          "definition_of_done": "The GraphState class in `eassistant/graph/state.py` is updated with a new optional `save_target: str` field. The `route_action` node correctly populates this field in the state.",
+          "status": "todo"
+        },
+        {
+          "id": "M7.3",
+          "name": "Update StorageService and 'save_draft' node",
+          "dependencies": [
+            "M3.3",
+            "M7.2"
+          ],
+          "definition_of_done": "The `StorageService.save()` method is updated to accept an optional `target` parameter. The `save_draft` node is modified to read the `save_target` from the state and pass it to the `StorageService`.",
+          "status": "todo"
+        },
+        {
+          "id": "M7.4",
+          "name": "Add integration test for conversational cloud save",
+          "dependencies": [
+            "M7.3"
+          ],
+          "definition_of_done": "An integration test is added that simulates a conversational command like 'save this to the cloud' and verifies (with a mock) that the StorageService was called with the 's3' target.",
+          "status": "todo"
         }
       ]
     }
