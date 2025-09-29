@@ -512,11 +512,12 @@ def test_parse_input_with_load_command(mocker: MockerFixture, tmp_path) -> None:
 
 def test_parse_input_with_non_pdf_file(tmp_path) -> None:
     """
-    Tests that a non-PDF file is treated as plain text.
+    Tests that a non-PDF file is read and its content is loaded.
     """
     # Arrange
+    file_content = "This is a text file."
     txt_file = tmp_path / "test.txt"
-    txt_file.write_text("This is a text file.")
+    txt_file.write_text(file_content)
 
     initial_state: GraphState = {
         "original_email": str(txt_file),
@@ -536,8 +537,8 @@ def test_parse_input_with_non_pdf_file(tmp_path) -> None:
     result_state = parse_input(initial_state)
 
     # Assert
-    assert result_state["original_email"] == str(txt_file)
-    assert result_state["email_path"] is None
+    assert result_state["original_email"] == file_content
+    assert result_state["email_path"] == str(txt_file)
 
 
 def test_parse_input_not_a_file_path() -> None:
@@ -792,7 +793,7 @@ def test_parse_input_pdf_extraction_error(mocker: MockerFixture, tmp_path) -> No
     result_state = parse_input(initial_state)
 
     # Assert
-    assert result_state["error_message"] == error_message
+    assert error_message in result_state["error_message"]
 
 
 def test_extract_and_summarize_llm_exception(mocker: MockerFixture) -> None:

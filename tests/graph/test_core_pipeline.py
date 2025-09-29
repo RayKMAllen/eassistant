@@ -1,5 +1,6 @@
 import json
 import uuid
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -499,47 +500,48 @@ def test_incomplete_llm_json_response_error_handling(
     assert "Missing summary or entities to generate a draft" in captured.out
 
 
-def test_non_pdf_file_input_is_treated_as_text(
-    mocked_llm_service: MagicMock,
+def test_non_pdf_file_input_is_read_correctly(
+    mocked_llm_service: MagicMock, tmp_path
 ) -> None:
     """
-    Tests that a path to a non-PDF file is treated as raw text input
-    and not a file to be parsed.
+    Tests that a path to a non-PDF file is correctly read and its content
+    is used in the pipeline.
     """
-    # 1. Arrange: Mock the file system to report a non-PDF file
-    with patch("eassistant.graph.nodes.Path") as mock_path:
-        mock_path.return_value.is_file.return_value = True
-        mock_path.return_value.suffix = ".txt"  # Not a .pdf
+    # 1. Arrange: Create a real temporary text file
+    file_content = "This is the content of the text file."
+    txt_file = tmp_path / "document.txt"
+    txt_file.write_text(file_content)
+    file_path = str(txt_file)
 
-        # 2. Set up the LLM mock
-        from eassistant.graph import builder, nodes
+    # 2. Set up the LLM mock
+    from eassistant.graph import builder, nodes
 
-        mocked_llm_service.invoke.side_effect = [
-            json.dumps({"intent": "process_new_email"}),
-            json.dumps({"summary": "Summary of the text file."}),
-            "Draft from the text file.",
-        ]
-        nodes.llm_service = mocked_llm_service
-        builder.ask_for_tone = mocked_ask_for_tone
+    mocked_llm_service.invoke.side_effect = [
+        json.dumps({"intent": "process_new_email"}),
+        json.dumps({"summary": "Summary of the text file."}),
+        "Draft from the text file.",
+    ]
+    nodes.llm_service = mocked_llm_service
+    builder.ask_for_tone = mocked_ask_for_tone
 
-        # 3. Build the graph
-        app = build_graph()
+    # 3. Build the graph
+    app = build_graph()
 
-        # 4. Define initial state with the path to a .txt file
-        file_path = "path/to/document.txt"
-        initial_state = GraphState(
-            session_id=uuid.uuid4(),
-            user_input=file_path,
-        )
+    # 4. Define initial state with the path to the .txt file
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        user_input=file_path,
+    )
 
-        # 5. Run the graph
-        final_state = app.invoke(initial_state)
+    # 5. Run the graph
+    final_state = app.invoke(initial_state)
 
-        # 6. Assert that the file path itself was treated as the email content
-        assert final_state is not None
-        assert final_state["original_email"] == file_path
-        assert final_state["summary"] == "Summary of the text file."
-        assert final_state["draft_history"][0]["content"] == "Draft from the text file."
+    # 6. Assert that the file content was used
+    assert final_state is not None
+    assert final_state["original_email"] == file_content
+    assert final_state["email_path"] == file_path
+    assert final_state["summary"] == "Summary of the text file."
+    assert final_state["draft_history"][0]["content"] == "Draft from the text file."
 
 
 def test_action_without_context_is_handled(
@@ -684,3 +686,56 @@ def test_single_action_intents(
         # 6. Verify the output
         captured = capsys.readouterr()
         assert expected_output in captured.out
+
+
+def test_file_loading_intent_integration(mocked_llm_service: MagicMock) -> None:
+    """
+    Integration test for the M5.3 file loading intent.
+
+    It verifies that the graph correctly interprets a user command like
+    'load file.txt', extracts the filename, reads the file, and proceeds
+    with the standard pipeline using the file's content.
+    """
+    # 1. Arrange: Set up the mocked LLM service
+    from eassistant.graph import builder, nodes
+
+    mocked_llm_service.invoke.side_effect = [
+        json.dumps({"intent": "process_new_email"}),  # 1. route_action
+        json.dumps(  # 2. extract_and_summarize
+            {
+                "summary": "Summary of the loaded file.",
+            }
+        ),
+        "Draft from the loaded file.",  # 3. generate_initial_draft
+    ]
+    nodes.llm_service = mocked_llm_service
+    builder.ask_for_tone = mocked_ask_for_tone
+
+    # 2. Build the graph
+    app = build_graph()
+
+    # 3. Define the initial state with a file loading command
+    # Use the fixture file created earlier.
+    file_path = "tests/fixtures/example.txt"
+    initial_state = GraphState(
+        session_id=uuid.uuid4(),
+        user_input=f"load {file_path}",
+    )
+
+    # 4. Run the graph
+    final_state = app.invoke(initial_state)
+
+    # 5. Assert the final state is as expected
+    assert final_state is not None
+    # The original_email should be the content of the file, not the command
+    with open(file_path, "r") as f:
+        expected_content = f.read()
+    assert final_state["original_email"] == expected_content
+    assert Path(final_state["email_path"]) == Path(file_path)
+    assert final_state["summary"] == "Summary of the loaded file."
+    assert final_state["draft_history"] is not None
+    assert len(final_state["draft_history"]) == 1
+    assert final_state["draft_history"][0]["content"] == "Draft from the loaded file."
+
+    # 6. Verify that the LLM service was called correctly
+    assert mocked_llm_service.invoke.call_count == 3

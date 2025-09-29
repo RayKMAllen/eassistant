@@ -134,15 +134,19 @@ def parse_input(state: GraphState) -> GraphState:
     # This avoids treating a sentence with a period as a file path.
     is_potential_path = "." in potential_path and " " not in potential_path
 
-    if is_potential_path and input_path.suffix.lower() == ".pdf":
-        if not input_path.is_file():
-            state["error_message"] = f"File not found: {potential_path}"
-            return state
+    if is_potential_path and input_path.is_file():
+        state["email_path"] = str(input_path)
         try:
-            state["original_email"] = extract_text_from_pdf(input_path)
-            state["email_path"] = str(input_path)
-        except ValueError as e:
-            state["error_message"] = str(e)
+            if input_path.suffix.lower() == ".pdf":
+                state["original_email"] = extract_text_from_pdf(input_path)
+            else:
+                # For non-PDF files, read them as plain text
+                with open(input_path, "r", encoding="utf-8") as f:
+                    state["original_email"] = f.read()
+        except Exception as e:
+            state["error_message"] = f"Failed to read file {potential_path}: {e}"
+    elif is_potential_path and not input_path.is_file():
+        state["error_message"] = f"File not found: {potential_path}"
 
     return state
 

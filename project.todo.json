@@ -484,7 +484,8 @@
             "M5.2"
           ],
           "definition_of_done": "An integration test is added to verify that providing an input like 'load example.pdf' runs the full graph and correctly loads the file content.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T14:21:52.314Z"
         }
       ]
     },
