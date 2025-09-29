@@ -9,7 +9,7 @@ from .nodes import (
     parse_input,
     refine_draft,
     reset_session,
-    route_user_intent,
+    route_action,
     save_draft,
     show_info,
 )
@@ -26,7 +26,7 @@ def check_for_errors(state: GraphState) -> str:
 def route_by_intent(state: GraphState) -> str:
     """Routes to the appropriate node based on the user's intent."""
     intent = state.get("intent")
-    if intent == "new_email":
+    if intent == "process_new_email":
         return "parse_input"
     if intent == "refine_draft":
         return "refine_draft"
@@ -46,7 +46,7 @@ def build_graph() -> StateGraph:
     workflow = StateGraph(GraphState)
 
     # Add all nodes
-    workflow.add_node("route_user_intent", route_user_intent)
+    workflow.add_node("route_action", route_action)
     workflow.add_node("parse_input", parse_input)
     workflow.add_node("extract_and_summarize", extract_and_summarize)
     workflow.add_node("ask_for_tone", ask_for_tone)
@@ -59,11 +59,11 @@ def build_graph() -> StateGraph:
     workflow.add_node("handle_error", handle_error)
 
     # Set the entry point to the intent router
-    workflow.set_entry_point("route_user_intent")
+    workflow.set_entry_point("route_action")
 
     # Add conditional edges from the intent router
     workflow.add_conditional_edges(
-        "route_user_intent",
+        "route_action",
         route_by_intent,
         {
             "parse_input": "parse_input",

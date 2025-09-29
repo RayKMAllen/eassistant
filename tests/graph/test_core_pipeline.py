@@ -32,7 +32,7 @@ def test_core_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     from eassistant.graph import builder, nodes
 
     mocked_llm_service.invoke.side_effect = [
-        json.dumps({"intent": "new_email"}),  # 1. route_user_intent
+        json.dumps({"intent": "process_new_email"}),  # 1. route_action
         json.dumps(  # 2. extract_and_summarize
             {
                 "sender_name": "Test Sender",
@@ -88,7 +88,7 @@ def test_refinement_pipeline_integration(mocked_llm_service: MagicMock) -> None:
     nodes.llm_service = mocked_llm_service
     builder.ask_for_tone = mocked_ask_for_tone
     mocked_llm_service.invoke.side_effect = [
-        json.dumps({"intent": "new_email"}),  # 1. route (initial)
+        json.dumps({"intent": "process_new_email"}),  # 1. route (initial)
         json.dumps(  # 2. extract
             {
                 "sender_name": "Test Sender",
@@ -153,7 +153,7 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
     builder.ask_for_tone = mocked_ask_for_tone
     mocked_llm_service.invoke.side_effect = [
         # First email flow
-        json.dumps({"intent": "new_email"}),
+        json.dumps({"intent": "process_new_email"}),
         json.dumps(
             {
                 "summary": "First email summary.",
@@ -164,7 +164,7 @@ def test_multi_email_session_integration(mocked_llm_service: MagicMock) -> None:
         ),
         "First email draft.",
         # Second email flow
-        json.dumps({"intent": "new_email"}),
+        json.dumps({"intent": "process_new_email"}),
         json.dumps(
             {
                 "summary": "Second email summary.",
@@ -240,7 +240,7 @@ def test_pdf_parsing_pipeline_integration(mocked_llm_service: MagicMock) -> None
         from eassistant.graph import builder, nodes
 
         mocked_llm_service.invoke.side_effect = [
-            json.dumps({"intent": "new_email"}),
+            json.dumps({"intent": "process_new_email"}),
             json.dumps({"summary": "This is a test summary."}),
             "This is a test draft.",
         ]
@@ -289,7 +289,7 @@ def test_error_handling_integration(capsys) -> None:
     # The first call to the router should succeed, but the second
     # to the extractor should fail
     mock_llm.invoke.side_effect = [
-        json.dumps({"intent": "new_email"}),
+        json.dumps({"intent": "process_new_email"}),
         Exception(error_message),
     ]
     nodes.llm_service = mock_llm
@@ -334,7 +334,7 @@ def test_invalid_file_path_error_handling(capsys) -> None:
         # This test does not mock the LLM, but the router node still needs to run.
         # We need a mock LLM that can be called by the router.
         mock_llm = MagicMock(spec=LLMService)
-        mock_llm.invoke.return_value = json.dumps({"intent": "new_email"})
+        mock_llm.invoke.return_value = json.dumps({"intent": "process_new_email"})
         from eassistant.graph import nodes
 
         nodes.llm_service = mock_llm
@@ -371,7 +371,7 @@ def test_malformed_llm_json_response_error_handling(
 
     # First call (router) is OK, second call (extractor) is malformed.
     mocked_llm_service.invoke.side_effect = [
-        json.dumps({"intent": "new_email"}),
+        json.dumps({"intent": "process_new_email"}),
         "This is not valid JSON.",
     ]
     nodes.llm_service = mocked_llm_service
@@ -396,32 +396,26 @@ def test_malformed_llm_json_response_error_handling(
     assert "Failed to parse LLM response as JSON" in captured.out
 
 
-def test_empty_user_input_error_handling(capsys) -> None:
+def test_empty_user_input_is_handled(capsys) -> None:
     """
-    Tests that the graph handles empty or whitespace-only user input.
+    Tests that the graph handles empty or whitespace-only user input gracefully.
     """
-    # 1. Arrange: Mock the router to force the 'new_email' path
-    from eassistant.graph import nodes
-
-    mock_llm = MagicMock(spec=LLMService)
-    mock_llm.invoke.return_value = json.dumps({"intent": "new_email"})
-    nodes.llm_service = mock_llm
-
-    # 2. Build the graph
+    # 1. Arrange: No LLM mocking is needed as the router should handle this.
     app = build_graph()
 
-    # 3. Define initial state with empty input
+    # 2. Define initial state with empty input
     initial_state = GraphState(
         session_id=uuid.uuid4(),
         user_input="   ",  # Whitespace only
     )
 
-    # 4. Run the graph
+    # 3. Run the graph
     final_state = app.invoke(initial_state)
 
-    # 4. Assert that the error was caught and handled
+    # 4. Assert that the intent was classified as 'unclear'
     assert final_state is not None
-    assert final_state.get("error_message") is None
+    assert final_state.get("intent") == "unclear"
 
+    # 5. Verify the user is prompted appropriately
     captured = capsys.readouterr()
-    assert "Input email cannot be empty." in captured.out
+    assert "I'm not sure what you mean." in captured.out

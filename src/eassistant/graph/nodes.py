@@ -18,48 +18,53 @@ storage_service = StorageService()
 console = Console()
 
 
-def route_user_intent(state: GraphState) -> GraphState:
+def route_action(state: GraphState) -> GraphState:
     """
-    Classifies the user's input to determine their intent.
+    Dynamically classifies user intent based on a rich context summary.
     """
-    print("Routing user intent...")
-    user_input = state.get("user_input")
+    print("Routing action...")
+    user_input = (state.get("user_input") or "").strip()
     draft_history = state.get("draft_history")
+    conversation_summary = state.get("conversation_summary", "")
 
     if not user_input:
         state["intent"] = "unclear"
         return state
 
-    # Simple keyword check for reset
-    if user_input.lower() == "new":
-        state["intent"] = "reset_session"
-        return state
+    # Construct a rich context for the LLM
+    context = f"""
+        You are an AI assistant helping a user draft emails.
+        The user's latest input is: "{user_input}"
 
-    # If there's a draft history, the user is more likely to be refining,
-    # saving, or asking for info.
-    context = (
-        "The user has an active draft and may want to refine it, save it, "
-        "show info, or start over."
-        if draft_history
-        else "The user is starting a new conversation and likely wants to "
-        "provide a new email to process."
-    )
+        Conversation Summary:
+        ---
+        {conversation_summary if conversation_summary else "No summary yet."}
+        ---
+
+        Current State:
+        - Is there a draft in progress? {"Yes" if draft_history else "No"}
+        - Latest draft content (if any):
+          {draft_history[-1]["content"] if draft_history else "N/A"}
+    """
 
     prompt = f"""
-        Given the user's input and the current context, classify the user's
-        intent into one of the following categories:
-        - new_email
-        - refine_draft
-        - show_info
-        - save_draft
-        - reset_session
-        - unclear
+        Based on the provided context and user input, classify the user's
+        primary intent into ONE of the following categories:
+        - process_new_email: User wants to start a new email from text/PDF.
+        - refine_draft: User wants to change the existing draft.
+        - show_info: User wants to see the extracted summary/info.
+        - save_draft: User wants to save the current draft.
+        - reset_session: User wants to start over completely.
+        - handle_idle_chat: User is making small talk or asking for help.
+        - unclear: The intent cannot be determined.
 
-        Context: {context}
+        Context:
+        {context}
+
         User Input: "{user_input}"
 
-        Return a single JSON object with a key "intent" and one of the
-        category values. For example: {{"intent": "refine_draft"}}
+        Return a single JSON object with the key "intent" and the determined
+        category. For example: {{"intent": "refine_draft"}}
     """
 
     try:
@@ -67,16 +72,28 @@ def route_user_intent(state: GraphState) -> GraphState:
         response_json = json.loads(response_text)
         intent = response_json.get("intent", "unclear")
 
-        # When the intent is to start a new email or refine an existing one,
-        # we need to populate the appropriate state fields.
-        if intent == "new_email":
+        # Update state based on intent
+        if intent == "process_new_email":
             state["original_email"] = user_input
         elif intent == "refine_draft":
             state["user_feedback"] = user_input
 
         state["intent"] = intent
-    except (json.JSONDecodeError, Exception):
+
+        # Update conversation summary
+        new_summary_entry = (
+            f"User said: '{user_input}' -> AI classified intent as: '{intent}'"
+        )
+        updated_summary = (
+            f"{conversation_summary}\n- {new_summary_entry}"
+            if conversation_summary
+            else f"- {new_summary_entry}"
+        )
+        state["conversation_summary"] = updated_summary
+
+    except (json.JSONDecodeError, Exception) as e:
         state["intent"] = "unclear"
+        state["error_message"] = f"Error during intent routing: {e}"
 
     return state
 

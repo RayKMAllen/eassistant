@@ -14,7 +14,7 @@ from eassistant.graph.nodes import (
     parse_input,
     refine_draft,
     reset_session,
-    route_user_intent,
+    route_action,
     save_draft,
     show_info,
 )
@@ -33,7 +33,7 @@ from eassistant.graph.state import GraphState
         (
             "This is a new email.",
             False,
-            "new_email",
+            "process_new_email",
             "This is a new email.",
             None,
         ),
@@ -44,7 +44,7 @@ from eassistant.graph.state import GraphState
         ("gibberish", False, "unclear", None, None),
     ],
 )
-def test_route_user_intent(
+def test_route_action(
     mocker: MockerFixture,
     user_input,
     has_draft_history,
@@ -53,7 +53,7 @@ def test_route_user_intent(
     expected_user_feedback,
 ) -> None:
     """
-    Tests that the route_user_intent node correctly classifies user input.
+    Tests that the route_action node correctly classifies user input.
     """
     # Arrange
     mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
@@ -76,7 +76,7 @@ def test_route_user_intent(
     }
 
     # Act
-    result_state = route_user_intent(initial_state)
+    result_state = route_action(initial_state)
 
     # Assert
     assert result_state["intent"] == expected_intent
@@ -84,13 +84,15 @@ def test_route_user_intent(
     assert result_state["user_feedback"] == expected_user_feedback
 
 
-def test_route_user_intent_handles_new_command() -> None:
+def test_route_action_handles_json_decode_error(mocker: MockerFixture) -> None:
     """
-    Tests that the 'new' command is handled directly without calling the LLM.
+    Tests that route_action handles LLM responses that are not valid JSON.
     """
     # Arrange
+    mock_llm = mocker.patch("eassistant.graph.nodes.llm_service")
+    mock_llm.invoke.return_value = "not json"
     initial_state: GraphState = {
-        "user_input": "new",
+        "user_input": "some input",
         "draft_history": [],
         "session_id": UUID("11111111-1111-1111-1111-111111111111"),
         "original_email": None,
@@ -101,13 +103,15 @@ def test_route_user_intent_handles_new_command() -> None:
         "user_feedback": None,
         "error_message": None,
         "intent": None,
+        "conversation_summary": None,
     }
 
     # Act
-    result_state = route_user_intent(initial_state)
+    result_state = route_action(initial_state)
 
     # Assert
-    assert result_state["intent"] == "reset_session"
+    assert result_state["intent"] == "unclear"
+    assert "Error during intent routing" in result_state["error_message"]
 
 
 def test_show_info_success(capsys) -> None:

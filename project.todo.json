@@ -259,7 +259,9 @@
             "M2.8",
             "M1.3"
           ],
-          "definition_of_done": "The `route_user_intent` node is replaced with a `route_action` node that dynamically constructs a rich context summary and uses an LLM to classify the user's intent based on the current state."
+          "definition_of_done": "The `route_user_intent` node is replaced with a `route_action` node that dynamically constructs a rich context summary and uses an LLM to classify the user's intent based on the current state.",
+          "status": "done",
+          "completed_at": "2025-09-29T12:38:28.680Z"
         },
         {
           "id": "M2.11",
