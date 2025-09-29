@@ -1090,6 +1090,58 @@ def test_ask_for_tone_user_cancellation(mocker: MockerFixture) -> None:
     assert result_state["error_message"] == "User cancelled the operation."
 
 
+def test_ask_for_tone_displays_contact_details(mocker: MockerFixture, capsys) -> None:
+    """
+    Tests that ask_for_tone correctly displays all key info, including contacts.
+    """
+    # Arrange
+    mock_console = mocker.patch("eassistant.graph.nodes.console")
+    mock_console.input.return_value = "casual"
+
+    initial_state: GraphState = {
+        "summary": "A test summary.",
+        "key_info": {
+            "sender_name": "John Doe",
+            "sender_contact": "john@example.com",
+            "receiver_name": "Jane Doe",
+            "receiver_contact": "jane@example.com",
+            "subject": "Important Update",
+        },
+        "session_id": UUID("11111111-1111-1111-1111-111111111111"),
+        "user_input": None,
+        "original_email": "Test email",
+        "email_path": None,
+        "draft_history": [],
+        "current_tone": None,
+        "user_feedback": None,
+        "error_message": None,
+        "intent": None,
+    }
+
+    # Act
+    ask_for_tone(initial_state)
+
+    # Assert
+    # We inspect the arguments passed to rich.console.print
+    # to see what would have been rendered.
+    print_calls = mock_console.print.call_args_list
+    assert len(print_calls) > 0
+
+    # The first call should be the Panel with the extracted info
+    info_panel = print_calls[0].args[0]
+
+    # Convert the renderable to a string to check its content
+    captured_output = str(info_panel.renderable)
+    assert "Sender:" in captured_output
+    assert "John Doe" in captured_output
+    assert "john@example.com" in captured_output
+    assert "Recipient:" in captured_output
+    assert "Jane Doe" in captured_output
+    assert "jane@example.com" in captured_output
+    assert "Subject:" in captured_output
+    assert "Important Update" in captured_output
+
+
 def test_handle_idle_chat(capsys) -> None:
     """
     Tests that handle_idle_chat prints a simple conversational response.

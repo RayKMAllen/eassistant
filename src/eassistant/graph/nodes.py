@@ -191,10 +191,18 @@ def ask_for_tone(state: GraphState) -> GraphState:
     summary = state.get("summary")
 
     if key_info:
+        sender_info = (
+            f"[bold]Sender:[/bold] {key_info.get('sender_name', 'N/A')} "
+            f"({key_info.get('sender_contact', 'N/A')})"
+        )
+        recipient_info = (
+            f"[bold]Recipient:[/bold] {key_info.get('receiver_name', 'N/A')} "
+            f"({key_info.get('receiver_contact', 'N/A')})"
+        )
+        subject_info = f"[bold]Subject:[/bold] {key_info.get('subject', 'N/A')}"
+        content = f"{sender_info}\n{recipient_info}\n{subject_info}"
         info_panel = Panel(
-            f"[bold]To:[/bold] {key_info.get('sender_name', 'N/A')}\n"
-            f"[bold]From:[/bold] {key_info.get('receiver_name', 'N/A')}\n"
-            f"[bold]Subject:[/bold] {key_info.get('subject', 'N/A')}",
+            content,
             title="Extracted Information",
             border_style="green",
         )

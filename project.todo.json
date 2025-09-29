@@ -443,7 +443,8 @@
             "M2.11"
           ],
           "definition_of_done": "A user command (e.g., 'show info') is implemented that, when called after the initial extraction, displays the current key_info and summary. The key_info extraction logic is updated to include sender/receiver contact details (email/phone) if available, not just names.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-09-29T13:36:30.436Z"
         }
       ]
     },
