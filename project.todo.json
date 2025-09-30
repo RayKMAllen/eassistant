@@ -585,7 +585,9 @@
           "id": "M8.1",
           "name": "Generate standalone architecture diagram",
           "dependencies": [],
-          "definition_of_done": "An SVG or PNG of the architecture diagram is generated from the Mermaid code in the architectural plan and saved as `docs/architecture.svg`."
+          "definition_of_done": "An SVG or PNG of the architecture diagram is generated from the Mermaid code in the architectural plan and saved as `docs/architecture.svg`.",
+          "status": "done",
+          "completed_at": "2025-09-30T08:46:27.751Z"
         },
         {
           "id": "M8.2",

@@ -432,25 +432,6 @@ This section contains the hierarchical task breakdown in a JSON format. This can
 
 ---
 
-## 9. Development Workflow: The TaskCycle
-
-The development of this project is intended to be assisted by an automated agent referred to as the "TaskCycle". This agent automates the process of picking a task from `project.todo.json`, implementing the necessary code changes, and preparing the result for commit.
-
-### Assisted Commit Workflow
-
-To balance automation with essential developer oversight, the TaskCycle uses an "assisted commit" workflow. This ensures that no code is committed without final human approval.
-
-The workflow is as follows:
-
-1.  **Task Execution & Verification**: Upon completing the coding for a task, the TaskCycle runs all automated checks (tests, linters, etc.).
-2.  **Staging Changes**: If all checks pass, the TaskCycle stages the modified files using `git add`.
-3.  **Commit Message Generation**: A commit message is automatically generated. **The message MUST be a one-liner that includes the ID(s) of the completed task(s)**. For example: `feat: Implement 'parse_input' node (M1.2)`.
-4.  **Developer Approval**: The staged changes and the generated commit message are presented to the developer. The developer performs a final review, makes any necessary adjustments, and executes the `git commit` command.
-
-This process streamlines development while ensuring the quality and integrity of the project's version history.
-
----
-
 ## 10. Decision Log
 
 ### 2025-09-29: Fix for Cloud Storage Save Functionality
