@@ -432,6 +432,31 @@ This section contains the hierarchical task breakdown in a JSON format. This can
 
 ---
 
+## 9. Technology Rationale
+
+The technology stack for this project was chosen to prioritize rapid development, leverage managed services for complex AI tasks, and maintain a clean, testable architecture.
+
+*   **LangGraph (for Orchestration):**
+    *   **Why:** LangGraph provides a robust framework for building stateful, multi-actor applications with LLMs. Its graph-based paradigm is a natural fit for modeling conversational flows, which are inherently cyclical and state-dependent.
+    *   **Alternatives Considered:** Hard-coded string pattern matching for intent classification.
+    *   **Reason for Choice:** While a simple keyword-based router would be fast to implement, it would be brittle and difficult to extend to more nuanced conversational commands. LangGraph provides a much more flexible and robust solution. Its graph structure makes the application logic explicit and easy to follow, and adding new capabilities (nodes) or changing conversational flows (edges) is significantly cleaner than managing a complex web of `if/else` statements or regex patterns. This improves long-term maintainability.
+
+*   **AWS Bedrock (for LLM Access):**
+    *   **Why:** Bedrock provides a managed, serverless API for accessing high-performing foundation models like Anthropic's Claude.
+    *   **Alternatives Considered:** Directly using the Anthropic API or other cloud providers' LLM services.
+    *   **Reason for Choice:** Bedrock simplifies infrastructure management, security, and credentialing. By using the standard `boto3` SDK, the application can leverage the existing AWS ecosystem for authentication (e.g., IAM roles), which is more secure and enterprise-ready than managing separate API keys. It also provides a single endpoint for potentially switching between different models in the future with minimal code changes.
+
+*   **Typer (for CLI):**
+    *   **Why:** Typer is a modern, easy-to-use library for building command-line interfaces.
+    *   **Alternatives Considered:** `argparse`, `Click`.
+    *   **Reason for Choice:** Typer is built on top of Click but provides a more intuitive, Pydantic-style interface using Python type hints. This reduces boilerplate code and makes the CLI logic cleaner and easier to read.
+
+*   **Pydantic (for Data Modeling):**
+    *   **Why:** Pydantic is used for data validation and settings management.
+    *   **Reason for Choice:** It enforces data consistency throughout the application, especially for the `GraphState`. This prevents runtime errors and makes the data flow explicit and predictable. Its integration with Typer is an added bonus.
+
+---
+
 ## 10. Decision Log
 
 ### 2025-09-29: Fix for Cloud Storage Save Functionality

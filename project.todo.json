@@ -593,7 +593,9 @@
           "id": "M8.2",
           "name": "Add Technology Rationale to Architectural Plan",
           "dependencies": [],
-          "definition_of_done": "A new section is added to `docs/Architectural_Plan.md` explaining the reasoning for choosing key technologies like AWS Bedrock, LangGraph."
+          "definition_of_done": "A new section is added to `docs/Architectural_Plan.md` explaining the reasoning for choosing key technologies like AWS Bedrock, LangGraph.",
+          "status": "done",
+          "completed_at": "2025-09-30T08:48:56.326Z"
         },
         {
           "id": "M8.3",
