@@ -603,7 +603,9 @@
           "dependencies": [
             "M0.6"
           ],
-          "definition_of_done": "The `README.md` is updated to include a project overview, features, setup instructions, and clear guidance on how to configure the `config/default.yaml` file for AWS credentials and other settings."
+          "definition_of_done": "The `README.md` is updated to include a project overview, features, setup instructions, and clear guidance on how to configure the `config/default.yaml` file for AWS credentials and other settings.",
+          "status": "done",
+          "completed_at": "2025-09-30T08:55:45.683Z"
         }
       ]
     }
