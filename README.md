@@ -27,7 +27,7 @@ For a detailed explanation of the project's components, design principles, and t
 
 2.  **Install package and dependencies:**
     ```bash
-    pip install -e .
+    pip install .
     ```
 
 3.  **Configure AWS Credentials:**
