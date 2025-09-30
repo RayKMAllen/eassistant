@@ -571,6 +571,37 @@
           "completed_at": "2025-09-29T14:56:20.976Z"
         }
       ]
+    },
+    {
+      "id": "M8",
+      "name": "Milestone 8: Submission Preparation",
+      "dependencies": [
+        "M6",
+        "M7"
+      ],
+      "definition_of_done": "All final documentation and packaging tasks are complete, and the project is ready for submission.",
+      "tasks": [
+        {
+          "id": "M8.1",
+          "name": "Generate standalone architecture diagram",
+          "dependencies": [],
+          "definition_of_done": "An SVG or PNG of the architecture diagram is generated from the Mermaid code in the architectural plan and saved as `docs/architecture.svg`."
+        },
+        {
+          "id": "M8.2",
+          "name": "Add Technology Rationale to Architectural Plan",
+          "dependencies": [],
+          "definition_of_done": "A new section is added to `docs/Architectural_Plan.md` explaining the reasoning for choosing key technologies like AWS Bedrock, LangGraph."
+        },
+        {
+          "id": "M8.3",
+          "name": "Create comprehensive README.md",
+          "dependencies": [
+            "M0.6"
+          ],
+          "definition_of_done": "The `README.md` is updated to include a project overview, features, setup instructions, and clear guidance on how to configure the `config/default.yaml` file for AWS credentials and other settings."
+        }
+      ]
     }
   ]
 }
