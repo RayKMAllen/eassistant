@@ -2,8 +2,6 @@
 
 This project is a conversational email assistant that helps you draft replies to your emails. You can interact with it in a conversational manner, providing it with an email (either as text or a PDF), and it will help you extract key information, summarize the content, and generate a draft reply. You can then refine the draft with further instructions.
 
-![Architecture Diagram](docs/architecture.svg)
-
 ## Features
 
 *   **Conversational Interface**: Interact with the assistant using natural language in a CLI.
@@ -15,6 +13,10 @@ This project is a conversational email assistant that helps you draft replies to
 *   **Tone Selection**: Specify a tone (e.g., formal, casual) for the generated draft.
 *   **Save Drafts**: Save your final draft to a local file or to an AWS S3 bucket.
 
+## Architecture
+
+For a detailed explanation of the project's components, design principles, and technical decisions, please see the [Architectural Plan](docs/Architectural_Plan.md).
+
 ## Setup
 
 1.  **Clone the repository:**
@@ -23,11 +25,9 @@ This project is a conversational email assistant that helps you draft replies to
     cd eassistant
     ```
 
-2.  **Install dependencies:**
-    This project uses Poetry for dependency management.
+2.  **Install package and dependencies:**
     ```bash
-    pip install poetry
-    poetry install
+    pip install -e .
     ```
 
 3.  **Configure AWS Credentials:**
@@ -46,7 +46,7 @@ This project is a conversational email assistant that helps you draft replies to
 
 To start the interactive shell, run:
 ```bash
-poetry run python shell.py
+eassistant
 ```
 You can then start a conversation. For example:
 > **You:** Hi, I need help with an email.
