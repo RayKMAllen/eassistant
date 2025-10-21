@@ -29,7 +29,7 @@ def get_initial_state(session_id: uuid.UUID) -> GraphState:
     }
 
 
-@app.command()  # type: ignore
+@app.command()
 def shell() -> None:
     """Starts the e-assistant interactive shell."""
     console = Console()

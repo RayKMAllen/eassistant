@@ -644,7 +644,8 @@
            "M9.1"
          ],
          "definition_of_done": "The FastAPI application can import and invoke the core LangGraph assistant, exposed via a new API endpoint.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-21T16:54:03.428Z"
        },
        {
          "id": "M9.4",

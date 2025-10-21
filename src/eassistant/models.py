@@ -15,7 +15,7 @@ Intent = Literal[
 SaveTarget = Literal["local", "s3"]
 
 
-class RouteActionOutput(BaseModel):  # type: ignore[misc]
+class RouteActionOutput(BaseModel):
     """
     Defines the structured output for the route_action node.
     """

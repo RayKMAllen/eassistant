@@ -21,6 +21,7 @@ test = [
     "pytest-mock",
     "moto[s3]",
     "boto3-stubs[s3]",
+    "types-fastapi",
 ]
 
 [project.scripts]
@@ -44,22 +45,26 @@ lint.select = ["E", "F", "W", "I"]
 # By default, mypy is not strict
 strict = false
 ignore_missing_imports = true
+disallow_untyped_decorators = false
 plugins = ["pydantic.mypy"]
 files = [
     "src/eassistant",
-    "tests"
+    "tests",
+    "services"
 ]
 exclude = [
     "\\.venv",
     "src/eassistant/notebooks",
     "build"
 ]
-follow_imports = "skip"
+follow_imports = "silent"
 # We enable strict checking for specific modules that are fully typed
 overrides = [
+    { module = "fastapi", ignore_missing_imports = true },
     { module = "eassistant.graph.state", strict = true },
     { module = "eassistant.models", strict = true },
     { module = "tests.*", strict = false, ignore_errors = true },
+    { module = "services.*", strict = false },
 ]
 
 [tool.pydantic-mypy]
