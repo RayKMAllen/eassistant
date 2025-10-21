@@ -624,7 +624,8 @@
          "name": "API: Initial FastAPI Setup",
          "dependencies": [],
          "definition_of_done": "The folder structure `services/api` is created with a basic `main.py` containing a `/healthz` endpoint and a `requirements.txt` file.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-21T16:24:40.790Z"
        },
        {
          "id": "M9.2",

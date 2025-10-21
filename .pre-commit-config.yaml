@@ -9,4 +9,6 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
-        additional_dependencies: [types-PyYAML, pydantic]
+        additional_dependencies: [types-PyYAML, pydantic, fastapi]
+        args: [--config-file, pyproject.toml]
+        exclude: ^services/api/
