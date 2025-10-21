@@ -634,7 +634,8 @@
            "M9.1"
          ],
          "definition_of_done": "A `services/api/Dockerfile` exists and can be used to build a container image of the FastAPI application.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-21T16:46:29.140Z"
        },
        {
          "id": "M9.3",
