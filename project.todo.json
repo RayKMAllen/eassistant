@@ -609,5 +609,87 @@
         }
       ]
     }
-  ]
+ ],
+ "tasks": [
+   {
+     "id": "M9",
+     "name": "Milestone 9: Web Application & API",
+     "dependencies": [
+       "M8"
+     ],
+     "definition_of_done": "The FastAPI API and Django UI are containerized, deployed to Google Cloud Run, and accessible via public URLs.",
+     "tasks": [
+       {
+         "id": "M9.1",
+         "name": "API: Initial FastAPI Setup",
+         "dependencies": [],
+         "definition_of_done": "The folder structure `services/api` is created with a basic `main.py` containing a `/healthz` endpoint and a `requirements.txt` file.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.2",
+         "name": "API: Create Dockerfile",
+         "dependencies": [
+           "M9.1"
+         ],
+         "definition_of_done": "A `services/api/Dockerfile` exists and can be used to build a container image of the FastAPI application.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.3",
+         "name": "API: Integrate LangGraph Assistant",
+         "dependencies": [
+           "M9.1"
+         ],
+         "definition_of_done": "The FastAPI application can import and invoke the core LangGraph assistant, exposed via a new API endpoint.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.4",
+         "name": "UI: Initial Django Setup",
+         "dependencies": [],
+         "definition_of_done": "The folder structure `services/ui` is created with a new Django project, Whitenoise is configured for static files, and a `requirements.txt` file is present.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.5",
+         "name": "UI: Create Dockerfile",
+         "dependencies": [
+           "M9.4"
+         ],
+         "definition_of_done": "A `services/ui/Dockerfile` exists and can be used to build a container image of the Django application.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.6",
+         "name": "UI: Consume API",
+         "dependencies": [
+           "M9.3",
+           "M9.4"
+         ],
+         "definition_of_done": "The Django UI has a basic interface that can send requests to the FastAPI service and display the conversational response.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.7",
+         "name": "Deployment: Configure for Cloud Run",
+         "dependencies": [
+           "M9.2",
+           "M9.5"
+         ],
+         "definition_of_done": "Configuration files (e.g., `cloudbuild.yaml`) are created for deploying both services to Google Cloud Run. Documentation for required environment variables and secrets is added to the README.",
+         "status": "pending"
+       },
+       {
+         "id": "M9.8",
+         "name": "CI: Update Pipeline and Add Smoke Tests",
+         "dependencies": [
+           "M9.7"
+         ],
+         "definition_of_done": "The CI pipeline is updated to build, test, and deploy the new services. Basic smoke tests are added to verify the health of the deployed API and UI.",
+         "status": "pending"
+       }
+     ]
+   }
+ ]
 }

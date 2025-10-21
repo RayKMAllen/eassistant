@@ -1,3 +1,5 @@
+from typing import Any
+
 from langgraph.graph import END, StateGraph
 
 from .nodes import (
@@ -42,7 +44,7 @@ def route_by_intent(state: GraphState) -> str:
     return "handle_unclear"
 
 
-def build_graph() -> StateGraph:
+def build_graph() -> Any:
     """
     Creates the conversational assistant graph with intent-based routing.
     """

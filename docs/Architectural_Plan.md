@@ -1,20 +1,27 @@
-# Architectural Plan: Conversational Email Assistant (CLI)
+# Architectural Plan: Conversational Email Assistant
 
 This document outlines the architecture and development plan for the Conversational Email Assistant, based on the project one-pager.
 
 ## 1. Component & Module Map
 
-The system is designed with a layered architecture to separate concerns, making it easier to maintain, test, and extend.
+The system is designed with a service-oriented architecture to separate concerns, making it easier to maintain, test, and extend.
 
 ```mermaid
 graph TD
-    subgraph "User's Local Machine"
-        UI[CLI Shell]
+    subgraph "User's Browser"
+        WebApp[Web UI]
+    end
+
+    subgraph "Google Cloud Run"
+        DjangoUI["Django Web UI<br>Serves Static Files<br>(Whitenoise)"]
+        FastAPIAPI["FastAPI API<br>Public Endpoint"]
+    end
+
+    subgraph "Core Logic (Shared Library)"
         Orchestrator["Orchestrator<br>LangGraph State Machine"]
         Models["Core Models<br>Pydantic State"]
         Nodes["Graph Nodes<br>Business Logic"]
         StorageService[Storage Service]
-        FS[Local File System]
     end
 
     subgraph "AWS Cloud"
@@ -22,13 +29,16 @@ graph TD
         S3[S3 Storage]
     end
 
-    %% --- Local Interactions ---
-    UI -- User Input --> Orchestrator
+    %% --- User & Service Interactions ---
+    WebApp -- HTTPS --> DjangoUI
+    DjangoUI -- HTTPS (CORS) --> FastAPIAPI
+    FastAPIAPI -- Calls --> Orchestrator
+
+    %% --- Core Logic Interactions ---
     Orchestrator -- Manages & Passes --> Models
     Orchestrator -- Invokes --> Nodes
     Nodes -- Read/Write --> Models
     Nodes -- Uses --> StorageService
-    StorageService -- Writes to --> FS
 
     %% --- Cloud Interactions ---
     Nodes -- Calls API --> LLM
@@ -38,7 +48,8 @@ graph TD
 
 ### Responsibilities:
 
--   **CLI Shell (Typer/Rich):** The entry point for the user. Responsible for capturing user input, displaying conversational history, and rendering styled output. It interacts directly with the Orchestration layer.
+-   **Web UI (Django/Whitenoise):** The entry point for the user. Responsible for rendering the user interface, serving static assets, and handling user interactions. It communicates with the FastAPI API to perform actions.
+-   **API Service (FastAPI):** Provides a public HTTP endpoint that wraps the core LangGraph orchestrator. It is responsible for request handling, validation, and security (including CORS).
 -   **Orchestration (LangGraph):** The "brain" of the application. It manages the conversational state, calls the appropriate nodes based on user input and current state, and routes the flow of logic.
 -   **Core Logic / Nodes:** Individual, atomic units of work. Each node performs a specific task (e.g., calling the LLM to summarize, extracting entities). They are stateless and receive all necessary data from the graph.
 -   **Services & Adapters:** Connectors to external systems. The `LLM Service` abstracts the specifics of calling the AWS Bedrock API. The `Storage Service` provides a unified interface for saving drafts to different backends (`Local`, `S3`).
@@ -130,11 +141,18 @@ graph TD
 ├── project.todo.json
 ├── pyproject.toml
 ├── README.md
-├── shell.py
+├── services/
+│   ├── api/
+│   │   ├── Dockerfile
+│   │   ├── main.py
+│   │   └── requirements.txt
+│   └── ui/
+│       ├── Dockerfile
+│       ├── manage.py
+│       └── requirements.txt
 ├── src/
 │   └── eassistant/
 │       ├── __init__.py
-│       ├── cli.py
 │       ├── config.py
 │       ├── models.py
 │       ├── graph/
