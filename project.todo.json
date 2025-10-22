@@ -662,7 +662,8 @@
            "M9.4"
          ],
          "definition_of_done": "A `services/ui/Dockerfile` exists and can be used to build a container image of the Django application.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-22T10:20:32.725Z"
        },
        {
          "id": "M9.6",
