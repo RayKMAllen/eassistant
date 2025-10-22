@@ -24,7 +24,7 @@ wheels/
 
 # Exclude specific file types as requested
 *.pdf
-*.txt
+*/example.txt
 .vscode/settings.json
 
 .roo/
@@ -41,3 +41,7 @@ services/ui/staticfiles/
 
 # Environment variables
 .env
+
+# Outputs
+outputs/
+drafts/
