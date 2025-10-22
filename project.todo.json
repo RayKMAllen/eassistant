@@ -652,7 +652,8 @@
          "name": "UI: Initial Django Setup",
          "dependencies": [],
          "definition_of_done": "The folder structure `services/ui` is created with a new Django project, Whitenoise is configured for static files, and a `requirements.txt` file is present.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-22T10:10:48.438Z"
        },
        {
          "id": "M9.5",
