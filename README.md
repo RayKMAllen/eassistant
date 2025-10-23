@@ -67,6 +67,62 @@ You can then start a conversation. For example:
 
 To exit the shell, type `exit` or `quit`.
 
+## Deployment
+
+This project is designed to be deployed as two separate services on Google Cloud Run: a FastAPI backend (`api`) and a Django frontend (`ui`).
+
+### Google Cloud Run
+
+Each service (`services/api` and `services/ui`) contains a `cloudbuild.yaml` file that defines the build and deployment steps for Google Cloud Build.
+
+**Prerequisites:**
+
+1.  A Google Cloud Project with the Cloud Build and Cloud Run APIs enabled.
+2.  The `gcloud` command-line tool installed and authenticated.
+3.  Your GCP Project ID configured (e.g., `gcloud config set project YOUR_PROJECT_ID`).
+4.  Permissions for your Cloud Build service account to deploy to Cloud Run.
+
+**Deployment Steps:**
+
+To deploy a service, navigate to its directory and submit the build:
+
+```bash
+# To deploy the API
+cd services/api
+gcloud builds submit --config cloudbuild.yaml .
+
+# To deploy the UI
+cd services/ui
+gcloud builds submit --config cloudbuild.yaml .
+```
+
+This command will instruct Cloud Build to:
+1.  Build the Docker image for the service.
+2.  Push the image to Google Container Registry (GCR).
+3.  Deploy the new image to the corresponding Cloud Run service.
+
+### Environment Variables
+
+When deploying to Cloud Run, you must configure the following environment variables.
+
+**API Service (`eassistant-api`):**
+
+*   `AWS_ACCESS_KEY_ID`: Your AWS access key.
+*   `AWS_SECRET_ACCESS_KEY`: Your AWS secret key.
+*   `AWS_SESSION_TOKEN` (Optional): For temporary credentials.
+*   `MODEL_ID`: The AWS Bedrock model ID (e.g., `anthropic.claude-3-sonnet-20240229-v1:0`).
+*   `S3_BUCKET_NAME`: The name of the S3 bucket for cloud storage.
+*   `REGION_NAME`: The AWS region for Bedrock and S3 (e.g., `us-east-1`).
+
+**UI Service (`eassistant-ui`):**
+
+*   `SECRET_KEY`: A long, random string for Django's cryptographic signing.
+*   `API_URL`: The full URL of the deployed API service (e.g., `https://eassistant-api-xxxxxxxxxx-uc.a.run.app`).
+*   `DJANGO_DEBUG`: Set to `False` in production.
+*   `DJANGO_ALLOWED_HOSTS`: The hostname of your UI service (e.g., `eassistant-ui-xxxxxxxxxx-uc.a.run.app`).
+
+You can set these during deployment using the `--set-env-vars` flag in `cloudbuild.yaml` or by configuring them in the Google Cloud Console.
+
 ## Configuration
 
 The application is configured via the `config/default.yaml` file.

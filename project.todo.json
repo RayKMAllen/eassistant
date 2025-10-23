@@ -684,7 +684,8 @@
            "M9.5"
          ],
          "definition_of_done": "Configuration files (e.g., `cloudbuild.yaml`) are created for deploying both services to Google Cloud Run. Documentation for required environment variables and secrets is added to the README.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-23T10:18:25.228Z"
        },
        {
          "id": "M9.8",
