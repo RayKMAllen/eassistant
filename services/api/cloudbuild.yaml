@@ -1,4 +1,14 @@
 steps:
+  # Install dependencies
+  - name: 'python:3.9-slim'
+    entrypoint: 'pip'
+    args: ['install', '-r', 'requirements.txt', '--user']
+
+  # Run tests
+  - name: 'python:3.9-slim'
+    entrypoint: 'python'
+    args: ['-m', 'pytest']
+
   # Build the container image
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/eassistant-api:$COMMIT_SHA', '.']

@@ -694,7 +694,8 @@
            "M9.7"
          ],
          "definition_of_done": "The CI pipeline is updated to build, test, and deploy the new services. Basic smoke tests are added to verify the health of the deployed API and UI.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-23T10:23:24.286Z"
        }
      ]
    }
