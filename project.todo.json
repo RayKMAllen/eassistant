@@ -712,7 +712,8 @@
             "M9.6"
           ],
           "definition_of_done": "The API endpoint path, request payload key, and default port are aligned between the Django UI and the FastAPI API.",
-          "status": "pending"
+          "status": "done",
+          "completed_at": "2025-10-23T12:41:40.017Z"
         },
         {
           "id": "M10.2",

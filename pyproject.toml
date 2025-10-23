@@ -69,3 +69,8 @@ overrides = [
 
 [tool.pydantic-mypy]
 init_for_subclass = true
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]

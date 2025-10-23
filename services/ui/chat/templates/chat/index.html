@@ -42,11 +42,11 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "input": message })
+                body: JSON.stringify({ "user_input": message })
             })
             .then(response => response.json())
             .then(data => {
-                const assistantMessage = data.output.content; // Adjust based on actual API response
+                const assistantMessage = data.output.draft_history[data.output.draft_history.length - 1];
                  // Display assistant message
                 chatLog.innerHTML += `<div class="message assistant"><b>Assistant:</b> ${assistantMessage}</div>`;
                 chatLog.scrollTop = chatLog.scrollHeight;

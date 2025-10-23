@@ -38,7 +38,7 @@ ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_str.split(",")]
 
 # URL for the backend API
 # In production, this will be the URL of your deployed FastAPI service
-API_URL = os.environ.get("API_URL", "http://127.0.0.1:8080/api/v1/chat/")
+API_URL = os.environ.get("API_URL", "http://127.0.0.1:8080/invoke")
 
 
 # Application definition
