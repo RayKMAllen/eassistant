@@ -608,96 +608,122 @@
           "completed_at": "2025-09-30T08:55:45.683Z"
         }
       ]
+    },
+    {
+      "id": "M9",
+      "name": "Milestone 9: Web Application & API",
+      "dependencies": [
+        "M8"
+      ],
+      "definition_of_done": "The FastAPI API and Django UI are containerized, deployed to Google Cloud Run, and accessible via public URLs.",
+      "tasks": [
+        {
+          "id": "M9.1",
+          "name": "API: Initial FastAPI Setup",
+          "dependencies": [],
+          "definition_of_done": "The folder structure `services/api` is created with a basic `main.py` containing a `/healthz` endpoint and a `requirements.txt` file.",
+          "status": "done",
+          "completed_at": "2025-10-21T16:24:40.790Z"
+        },
+        {
+          "id": "M9.2",
+          "name": "API: Create Dockerfile",
+          "dependencies": [
+            "M9.1"
+          ],
+          "definition_of_done": "A `services/api/Dockerfile` exists and can be used to build a container image of the FastAPI application.",
+          "status": "done",
+          "completed_at": "2025-10-21T16:46:29.140Z"
+        },
+        {
+          "id": "M9.3",
+          "name": "API: Integrate LangGraph Assistant",
+          "dependencies": [
+            "M9.1"
+          ],
+          "definition_of_done": "The FastAPI application can import and invoke the core LangGraph assistant, exposed via a new API endpoint.",
+          "status": "done",
+          "completed_at": "2025-10-21T16:54:03.428Z"
+        },
+        {
+          "id": "M9.4",
+          "name": "UI: Initial Django Setup",
+          "dependencies": [],
+          "definition_of_done": "The folder structure `services/ui` is created with a new Django project, Whitenoise is configured for static files, and a `requirements.txt` file is present.",
+          "status": "done",
+          "completed_at": "2025-10-22T10:10:48.438Z"
+        },
+        {
+          "id": "M9.5",
+          "name": "UI: Create Dockerfile",
+          "dependencies": [
+            "M9.4"
+          ],
+          "definition_of_done": "A `services/ui/Dockerfile` exists and can be used to build a container image of the Django application.",
+          "status": "done",
+          "completed_at": "2025-10-22T10:20:32.725Z"
+        },
+        {
+          "id": "M9.6",
+          "name": "UI: Consume API",
+          "dependencies": [
+            "M9.3",
+            "M9.4"
+          ],
+          "definition_of_done": "The Django UI has a basic interface that can send requests to the FastAPI service and display the conversational response.",
+          "status": "done",
+          "completed_at": "2025-10-23T10:00:00.189Z"
+        },
+        {
+          "id": "M9.7",
+          "name": "Deployment: Configure for Cloud Run",
+          "dependencies": [
+            "M9.2",
+            "M9.5"
+          ],
+          "definition_of_done": "Configuration files (e.g., `cloudbuild.yaml`) are created for deploying both services to Google Cloud Run. Documentation for required environment variables and secrets is added to the README.",
+          "status": "done",
+          "completed_at": "2025-10-23T10:18:25.228Z"
+        },
+        {
+          "id": "M9.8",
+          "name": "CI: Update Pipeline and Add Smoke Tests",
+          "dependencies": [
+            "M9.7"
+          ],
+          "definition_of_done": "The CI pipeline is updated to build, test, and deploy the new services. Basic smoke tests are added to verify the health of the deployed API and UI.",
+          "status": "done",
+          "completed_at": "2025-10-23T10:23:24.286Z"
+        }
+      ]
+    },
+    {
+      "id": "M10",
+      "name": "Milestone 10: UI/API Integration & Testing",
+      "dependencies": [
+        "M9"
+      ],
+      "definition_of_done": "The UI and API services can communicate reliably, and this is verified by automated integration tests.",
+      "tasks": [
+        {
+          "id": "M10.1",
+          "name": "Fix UI/API Communication Mismatches",
+          "dependencies": [
+            "M9.6"
+          ],
+          "definition_of_done": "The API endpoint path, request payload key, and default port are aligned between the Django UI and the FastAPI API.",
+          "status": "pending"
+        },
+        {
+          "id": "M10.2",
+          "name": "Implement UI/API Integration Test",
+          "dependencies": [
+            "M10.1"
+          ],
+          "definition_of_done": "An automated test is created that launches both the UI and API services and simulates a user sending a message to verify the end-to-end communication flow.",
+          "status": "pending"
+        }
+      ]
     }
- ],
- "tasks": [
-   {
-     "id": "M9",
-     "name": "Milestone 9: Web Application & API",
-     "dependencies": [
-       "M8"
-     ],
-     "definition_of_done": "The FastAPI API and Django UI are containerized, deployed to Google Cloud Run, and accessible via public URLs.",
-     "tasks": [
-       {
-         "id": "M9.1",
-         "name": "API: Initial FastAPI Setup",
-         "dependencies": [],
-         "definition_of_done": "The folder structure `services/api` is created with a basic `main.py` containing a `/healthz` endpoint and a `requirements.txt` file.",
-         "status": "done",
-         "completed_at": "2025-10-21T16:24:40.790Z"
-       },
-       {
-         "id": "M9.2",
-         "name": "API: Create Dockerfile",
-         "dependencies": [
-           "M9.1"
-         ],
-         "definition_of_done": "A `services/api/Dockerfile` exists and can be used to build a container image of the FastAPI application.",
-         "status": "done",
-         "completed_at": "2025-10-21T16:46:29.140Z"
-       },
-       {
-         "id": "M9.3",
-         "name": "API: Integrate LangGraph Assistant",
-         "dependencies": [
-           "M9.1"
-         ],
-         "definition_of_done": "The FastAPI application can import and invoke the core LangGraph assistant, exposed via a new API endpoint.",
-         "status": "done",
-         "completed_at": "2025-10-21T16:54:03.428Z"
-       },
-       {
-         "id": "M9.4",
-         "name": "UI: Initial Django Setup",
-         "dependencies": [],
-         "definition_of_done": "The folder structure `services/ui` is created with a new Django project, Whitenoise is configured for static files, and a `requirements.txt` file is present.",
-         "status": "done",
-         "completed_at": "2025-10-22T10:10:48.438Z"
-       },
-       {
-         "id": "M9.5",
-         "name": "UI: Create Dockerfile",
-         "dependencies": [
-           "M9.4"
-         ],
-         "definition_of_done": "A `services/ui/Dockerfile` exists and can be used to build a container image of the Django application.",
-         "status": "done",
-         "completed_at": "2025-10-22T10:20:32.725Z"
-       },
-       {
-         "id": "M9.6",
-         "name": "UI: Consume API",
-         "dependencies": [
-           "M9.3",
-           "M9.4"
-         ],
-         "definition_of_done": "The Django UI has a basic interface that can send requests to the FastAPI service and display the conversational response.",
-         "status": "done",
-         "completed_at": "2025-10-23T10:00:00.189Z"
-       },
-       {
-         "id": "M9.7",
-         "name": "Deployment: Configure for Cloud Run",
-         "dependencies": [
-           "M9.2",
-           "M9.5"
-         ],
-         "definition_of_done": "Configuration files (e.g., `cloudbuild.yaml`) are created for deploying both services to Google Cloud Run. Documentation for required environment variables and secrets is added to the README.",
-         "status": "done",
-         "completed_at": "2025-10-23T10:18:25.228Z"
-       },
-       {
-         "id": "M9.8",
-         "name": "CI: Update Pipeline and Add Smoke Tests",
-         "dependencies": [
-           "M9.7"
-         ],
-         "definition_of_done": "The CI pipeline is updated to build, test, and deploy the new services. Basic smoke tests are added to verify the health of the deployed API and UI.",
-         "status": "done",
-         "completed_at": "2025-10-23T10:23:24.286Z"
-       }
-     ]
-   }
- ]
+  ]
 }
