@@ -67,6 +67,28 @@ You can then start a conversation. For example:
 
 To exit the shell, type `exit` or `quit`.
 
+### Local Development
+
+To run the services locally using Docker:
+
+1.  **Start the API Service:**
+    ```bash
+    # Build the image
+    docker build -t eassistant-api -f services/api/Dockerfile .
+    # Run the container
+    docker run -d -p 8080:8080 --name api eassistant-api
+    ```
+
+2.  **Start the UI Service:**
+    ```bash
+    # Build the image
+    docker build -t eassistant-ui -f services/ui/Dockerfile services/ui
+    # Run the container
+    docker run -d -p 8000:8000 --name ui eassistant-ui
+    ```
+
+You can then access the web UI at `http://localhost:8000`.
+
 ## Deployment
 
 This project is designed to be deployed as two separate services on Google Cloud Run: a FastAPI backend (`api`) and a Django frontend (`ui`).

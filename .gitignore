@@ -45,3 +45,6 @@ services/ui/staticfiles/
 # Outputs
 outputs/
 drafts/
+
+# Django database
+services/ui/db.sqlite3
