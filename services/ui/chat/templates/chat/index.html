@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>E-Assistant</title>
+    <style>
+        body { font-family: sans-serif; }
+        #chat-log { height: 300px; border: 1px solid #ccc; overflow-y: scroll; padding: 10px; }
+        .message { margin-bottom: 10px; }
+        .user { text-align: right; color: blue; }
+        .assistant { text-align: left; color: green; }
+    </style>
+</head>
+<body>
+    <h1>Conversational Email Assistant</h1>
+    <div id="chat-log"></div>
+    <form id="chat-form">
+        <input type="text" id="chat-message-input" autocomplete="off" size="100" placeholder="Enter your message...">
+        <input type="submit" value="Send">
+    </form>
+
+    <script>
+        const chatLog = document.querySelector('#chat-log');
+        const chatForm = document.querySelector('#chat-form');
+        const chatInput = document.querySelector('#chat-message-input');
+
+        chatForm.onsubmit = function(e) {
+            e.preventDefault();
+
+            const message = chatInput.value;
+            if (message.trim() === '') return;
+
+            // Display user message
+            chatLog.innerHTML += `<div class="message user"><b>You:</b> ${message}</div>`;
+            chatLog.scrollTop = chatLog.scrollHeight;
+
+            // Clear input
+            chatInput.value = '';
+
+            // Send message to API and get response
+            fetch('http://127.0.0.1:8000/api/v1/chat/', { // This URL will need to be configured
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ "input": message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const assistantMessage = data.output.content; // Adjust based on actual API response
+                 // Display assistant message
+                chatLog.innerHTML += `<div class="message assistant"><b>Assistant:</b> ${assistantMessage}</div>`;
+                chatLog.scrollTop = chatLog.scrollHeight;
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                chatLog.innerHTML += `<div class="message assistant"><b>Assistant:</b> Error communicating with the API.</div>`;
+                chatLog.scrollTop = chatLog.scrollHeight;
+            });
+
+            return false;
+        };
+    </script>
+</body>
+</html>

@@ -673,7 +673,8 @@
            "M9.4"
          ],
          "definition_of_done": "The Django UI has a basic interface that can send requests to the FastAPI service and display the conversational response.",
-         "status": "pending"
+         "status": "done",
+         "completed_at": "2025-10-23T10:00:00.189Z"
        },
        {
          "id": "M9.7",
