@@ -9,6 +9,14 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
-        additional_dependencies: [types-PyYAML, pydantic, fastapi, typer]
+        additional_dependencies: [
+            types-PyYAML,
+            pydantic,
+            fastapi,
+            typer,
+            django-stubs,
+            djangorestframework-stubs,
+            types-requests
+        ]
         args: [--config-file, pyproject.toml]
         exclude: ^services/api/

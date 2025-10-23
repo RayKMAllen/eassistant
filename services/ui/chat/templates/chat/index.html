@@ -46,14 +46,21 @@
             })
             .then(response => response.json())
             .then(data => {
-                const assistantMessage = data.output.draft_history[data.output.draft_history.length - 1];
-                 // Display assistant message
+                let assistantMessage;
+                if (data.draft_history && data.draft_history.length > 0) {
+                    assistantMessage = data.draft_history[data.draft_history.length - 1];
+                } else if (data.output && data.output.error_message) {
+                    assistantMessage = `Error: ${data.output.error_message}`;
+                } else {
+                    assistantMessage = "Sorry, I couldn't get a response.";
+                }
+                // Display assistant message
                 chatLog.innerHTML += `<div class="message assistant"><b>Assistant:</b> ${assistantMessage}</div>`;
                 chatLog.scrollTop = chatLog.scrollHeight;
             })
             .catch((error) => {
                 console.error('Error:', error);
-                chatLog.innerHTML += `<div class="message assistant"><b>Assistant:</b> Error communicating with the API.</div>`;
+                chatLog.innerHTML += `<div class="message assistant"><b>Assistant:</b> Error communicating with the API. ${error}</div>`;
                 chatLog.scrollTop = chatLog.scrollHeight;
             });
 

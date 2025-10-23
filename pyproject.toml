@@ -21,7 +21,8 @@ test = [
     "pytest-mock",
     "moto[s3]",
     "boto3-stubs[s3]",
-    "types-fastapi",
+    "django-stubs",
+    "djangorestframework-stubs",
 ]
 
 [project.scripts]
@@ -42,11 +43,16 @@ line-length = 88
 lint.select = ["E", "F", "W", "I"]
 
 [tool.mypy]
+mypy_path = ["src", "services/ui"]
 # By default, mypy is not strict
 strict = false
 ignore_missing_imports = true
 disallow_untyped_decorators = false
-plugins = ["pydantic.mypy"]
+plugins = [
+    "pydantic.mypy",
+    "mypy_django_plugin.main",
+    "mypy_drf_plugin.main"
+]
 files = [
     "src/eassistant",
     "tests",
@@ -71,6 +77,13 @@ overrides = [
 init_for_subclass = true
 
 [tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "services.ui.eassistant_ui.settings"
+django_find_project = false
 pythonpath = [
-  "src"
+  ".",
+  "src",
+  "services/ui"
 ]
+
+[tool.django-stubs]
+django_settings_module = "services.ui.eassistant_ui.settings"
