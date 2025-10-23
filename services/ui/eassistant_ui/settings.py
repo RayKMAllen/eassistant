@@ -27,9 +27,18 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Default to True for local development, but expect "False" in production.
+DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in ("true", "1", "t")
 
-ALLOWED_HOSTS: list[str] = []
+# Read allowed hosts from environment variable
+# In production, this should be the full domain name of your UI service
+# e.g., "eassistant-ui-xxxxxxxxxx-uc.a.run.app"
+ALLOWED_HOSTS_str = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1,localhost")
+ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS_str.split(",")]
+
+# URL for the backend API
+# In production, this will be the URL of your deployed FastAPI service
+API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000/api/v1/chat/")
 
 
 # Application definition
