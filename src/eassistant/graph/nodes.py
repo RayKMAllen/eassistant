@@ -226,53 +226,12 @@ def extract_and_summarize(state: GraphState) -> GraphState:
 
 def ask_for_tone(state: GraphState) -> GraphState:
     """
-    Asks the user for the desired tone of the email draft.
+    This node is a placeholder for the UI to ask for the tone.
+    The graph interrupts before this node runs. The UI provides the tone,
+    the API updates the state, and then the graph resumes.
+    This node is now effectively a no-op, only printing a message for logging.
     """
-    print("\n---")
-    key_info = state.get("key_info")
-    summary = state.get("summary")
-
-    if key_info:
-        sender_info = (
-            f"[bold]Sender:[/bold] {key_info.get('sender_name', 'N/A')} "
-            f"({key_info.get('sender_contact', 'N/A')})"
-        )
-        recipient_info = (
-            f"[bold]Recipient:[/bold] {key_info.get('receiver_name', 'N/A')} "
-            f"({key_info.get('receiver_contact', 'N/A')})"
-        )
-        subject_info = f"[bold]Subject:[/bold] {key_info.get('subject', 'N/A')}"
-        content = f"{sender_info}\n{recipient_info}\n{subject_info}"
-        info_panel = Panel(
-            content,
-            title="Extracted Information",
-            border_style="green",
-        )
-        console.print(info_panel)
-
-    if summary:
-        summary_panel = Panel(
-            summary,
-            title="Summary",
-            border_style="blue",
-        )
-        console.print(summary_panel)
-
-    try:
-        prompt = (
-            "Enter the desired tone for the draft (e.g., formal, casual, "
-            "friendly) [default: professional]: "
-        )
-        tone = console.input(prompt)
-        state["current_tone"] = tone.strip() if tone.strip() else "professional"
-    except (KeyboardInterrupt, EOFError):
-        # Handle Ctrl+C or Ctrl+D gracefully
-        print("\nOperation cancelled by user.")
-        state["error_message"] = "User cancelled the operation."
-        state["current_tone"] = "professional"  # Default on cancel
-
-    console.print(f"Tone set to: [bold cyan]{state['current_tone']}[/bold cyan]")
-    print("---\n")
+    print("Graph paused to ask for tone via UI.")
     return state
 
 

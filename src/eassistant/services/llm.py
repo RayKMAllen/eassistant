@@ -1,9 +1,13 @@
 import json
+import logging
 from typing import Any, Dict, List
 
 import boto3
+from botocore.exceptions import ClientError
 
 from eassistant.config import config
+
+logger = logging.getLogger(__name__)
 
 
 class LLMService:
@@ -44,12 +48,15 @@ class LLMService:
             }
         )
 
-        response = self.bedrock_runtime.invoke_model(body=body, modelId=model_id)
+        try:
+            response = self.bedrock_runtime.invoke_model(body=body, modelId=model_id)
+            response_body: Dict[str, Any] = json.loads(response.get("body").read())
+            content: List[Dict[str, str]] = response_body.get("content", [])
 
-        response_body: Dict[str, Any] = json.loads(response.get("body").read())
-        content: List[Dict[str, str]] = response_body.get("content", [])
+            if content and "text" in content[0]:
+                return content[0]["text"]
 
-        if content and "text" in content[0]:
-            return content[0]["text"]
-
-        return ""
+            return ""
+        except ClientError as e:
+            logger.error(f"Bedrock API call failed: {e}")
+            return f"Sorry, there was an error communicating with the LLM: {e}"

@@ -22,9 +22,18 @@
         const chatLog = document.querySelector('#chat-log');
         const chatForm = document.querySelector('#chat-form');
         const chatInput = document.querySelector('#chat-message-input');
+        let sessionId = null;
+
+        function generateSessionId() {
+            return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        }
 
         chatForm.onsubmit = function(e) {
             e.preventDefault();
+
+            if (!sessionId) {
+                sessionId = generateSessionId();
+            }
 
             const message = chatInput.value;
             if (message.trim() === '') return;
@@ -42,13 +51,16 @@
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ "user_input": message })
+                body: JSON.stringify({ "user_input": message, "session_id": sessionId })
             })
             .then(response => response.json())
             .then(data => {
                 let assistantMessage;
-                if (data.draft_history && data.draft_history.length > 0) {
-                    assistantMessage = data.draft_history[data.draft_history.length - 1];
+                // Check if the graph is waiting for the tone. 'next' is an array of possible next steps.
+                if (data.output && Array.isArray(data.output.next) && data.output.next.includes('ask_for_tone')) {
+                    assistantMessage = "Enter the desired tone for the draft";
+                } else if (data.draft_history && data.draft_history.length > 0) {
+                    assistantMessage = data.draft_history[data.draft_history.length - 1].content;
                 } else if (data.output && data.output.error_message) {
                     assistantMessage = `Error: ${data.output.error_message}`;
                 } else {

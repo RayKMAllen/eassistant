@@ -117,4 +117,4 @@ def build_graph() -> Any:
     workflow.add_edge("handle_error", END)
     workflow.add_edge("handle_idle_chat", END)
 
-    return workflow.compile()
+    return workflow.compile(interrupt_before=["ask_for_tone"])

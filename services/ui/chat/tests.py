@@ -41,8 +41,8 @@ def api_server() -> Generator[None, None, None]:
         command,
         cwd=project_root,  # Run from the project root
         env=env,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=sys.stdout,
+        stderr=sys.stderr,
     )
     start_time = time.time()
     timeout = 30
@@ -129,7 +129,9 @@ def test_real_ui_api_integration(
     # 2. Find the input and send a message
     input_box = page.locator("#chat-message-input")
     expect(input_box).to_be_visible()
-    input_box.fill("Hello, what is the summary?")
+    input_box.fill(
+        "Subject: Quarterly Report\n\nHi team, here is the quarterly report."
+    )
     input_box.press("Enter")
 
     # 3. Wait for the response from the REAL API and verify it
@@ -149,3 +151,59 @@ def test_real_ui_api_integration(
 
     # 5. Verify the response does not contain an error message.
     expect(response_box).not_to_contain_text("Error")
+
+
+def test_conversation_flow(api_server: Any, django_ui_server: Any, page: Page) -> None:
+    """
+    Tests a multi-step conversation to ensure the backend handles
+    stateful interactions correctly, including refinement and ending.
+    """
+    # 1. Navigate to the UI
+    page.goto(f"{UI_URL}/", wait_until="networkidle")
+    input_box = page.locator("#chat-message-input")
+    expect(input_box).to_be_visible()
+
+    # 2. Start the conversation
+    input_box.fill("Subject: Hello\n\nHi there, can you write a reply?")
+    input_box.press("Enter")
+
+    # 3. Wait for the tone prompt
+    expect(page.locator("body")).to_contain_text(
+        "Enter the desired tone for the draft", timeout=10000
+    )
+
+    # 4. Provide the tone
+    input_box.fill("formal")
+    input_box.press("Enter")
+
+    # 5. Verify the first draft
+    expect(page.locator("body")).not_to_contain_text(
+        "Error communicating with the API", timeout=5000
+    )
+    expect(page.locator(".message.assistant").last).to_contain_text(
+        "Here's a draft", timeout=30000
+    )
+
+    # 6. Ask for a refinement
+    input_box.fill("Make it more friendly")
+    input_box.press("Enter")
+
+    # 7. Verify the refined draft
+    expect(page.locator("body")).not_to_contain_text(
+        "Error communicating with the API", timeout=5000
+    )
+    expect(page.locator(".message.assistant").last).to_contain_text(
+        "Here's a revised draft", timeout=30000
+    )
+
+    # 8. End the conversation
+    input_box.fill("Looks good, thanks!")
+    input_box.press("Enter")
+
+    # 9. Verify the closing message
+    expect(page.locator("body")).not_to_contain_text(
+        "Error communicating with the API", timeout=5000
+    )
+    expect(page.locator(".message.assistant").last).to_contain_text(
+        "You're welcome!", timeout=30000
+    )

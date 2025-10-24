@@ -25,3 +25,10 @@ class RouteActionOutput(BaseModel):
         None,
         description="The target location for saving a draft, if specified.",
     )
+
+
+class Draft(BaseModel):
+    """A single draft of a reply."""
+
+    content: str
+    tone: str
