@@ -1,728 +1,186 @@
 {
   "id": "T0",
-  "name": "Conversational Email Assistant MVP",
-  "description": "Top-level project epic. This file tracks all tasks required to deliver the MVP.",
-  "definition_of_done": "All M0-M3 milestones are complete and their respective acceptance criteria are met.",
+  "name": "Conversational Email Assistant",
+  "description": "Top-level project epic. This file tracks all tasks required to deliver the MVP and the subsequent architectural refactor.",
+  "definition_of_done": "All M0-M13 milestones are complete and their respective acceptance criteria are met.",
   "tasks": [
     {
       "id": "M0",
       "name": "Milestone 0: Bootstrap",
-      "dependencies": [],
-      "definition_of_done": "Project structure is in place, dependencies are defined, and a basic CLI shell with a 'hello world' graph can be executed.",
-      "tasks": [
-        {
-          "id": "M0.1",
-          "name": "Set up folder structure and git repository",
-          "dependencies": [],
-          "definition_of_done": "The folder structure as defined in the architectural plan exists and is checked into a git repository with a .gitignore file.",
-          "status": "done",
-          "completed_at": "2025-09-26T14:55:31.709Z"
-        },
-        {
-          "id": "M0.2",
-          "name": "Define project dependencies in pyproject.toml",
-          "dependencies": [
-            "M0.1"
-          ],
-          "definition_of_done": "pyproject.toml contains all necessary libraries (langgraph, pydantic, typer, rich, boto3, etc.).",
-          "status": "done",
-          "completed_at": "2025-09-26T14:56:15.087Z"
-        },
-        {
-          "id": "M0.3",
-          "name": "Implement basic Typer CLI shell",
-          "dependencies": [
-            "M0.1"
-          ],
-          "definition_of_done": "A `shell.py` entry point exists that can be run to start an interactive loop that accepts user input.",
-          "status": "done",
-          "completed_at": "2025-09-26T15:25:24.543Z"
-        },
-        {
-          "id": "M0.4",
-          "name": "Create 'hello world' LangGraph instance",
-          "dependencies": [
-            "M0.1"
-          ],
-          "definition_of_done": "A simple graph with a start and end node is defined and can be invoked.",
-          "status": "done",
-          "completed_at": "2025-09-26T15:30:20.123Z"
-        },
-        {
-          "id": "M0.5",
-          "name": "Integrate graph into CLI shell",
-          "dependencies": [
-            "M0.3",
-            "M0.4"
-          ],
-          "definition_of_done": "User input in the CLI is passed to the LangGraph instance and the result is printed to the console.",
-          "status": "done",
-          "completed_at": "2025-09-26T15:36:51.485Z"
-        },
-        {
-          "id": "M0.6",
-          "name": "Create minimal README.md",
-          "dependencies": [
-            "M0.1"
-          ],
-          "definition_of_done": "A README.md file exists at the project root with a basic project title and description.",
-          "status": "done",
-          "completed_at": "2025-09-27T08:28:03.848Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M1",
       "name": "Milestone 1: Core Pipeline (Text)",
-      "dependencies": [
-        "M0"
-      ],
-      "definition_of_done": "The full pipeline from pasting plain text to generating a first draft is functional and covered by a baseline integration test.",
-      "tasks": [
-        {
-          "id": "M1.1",
-          "name": "Define Pydantic models for GraphState",
-          "dependencies": [],
-          "definition_of_done": "The core `GraphState` class is defined in `eassistant/graph/state.py` with all required fields.",
-          "status": "done",
-          "completed_at": "2025-09-27T08:43:05.000Z"
-        },
-        {
-          "id": "M1.2",
-          "name": "Implement `parse_input` node for plain text",
-          "dependencies": [
-            "M1.1"
-          ],
-          "definition_of_done": "The node correctly takes user input and populates the `original_email` field in the state.",
-          "status": "done",
-          "completed_at": "2025-09-27T08:46:00.000Z"
-        },
-        {
-          "id": "M1.3",
-          "name": "Implement LLM service for Bedrock Claude",
-          "dependencies": [],
-          "definition_of_done": "A service class in `eassistant/services/llm.py` can invoke a Claude model on Bedrock and return the response.",
-          "status": "done",
-          "completed_at": "2025-09-27T09:19:09.138Z"
-        },
-        {
-          "id": "M1.4",
-          "name": "Implement `extract_and_summarize` node",
-          "dependencies": [
-            "M1.1",
-            "M1.3"
-          ],
-          "definition_of_done": "The node calls the LLM service and populates the `key_info` and `summary` fields in the state.",
-          "status": "done",
-          "completed_at": "2025-09-27T09:35:11.984Z"
-        },
-        {
-          "id": "M1.5",
-          "name": "Implement `generate_initial_draft` node",
-          "dependencies": [
-            "M1.1",
-            "M1.3",
-            "M1.4"
-          ],
-          "definition_of_done": "The node uses the summary and entities to generate a draft and adds it to the `draft_history` in the state.",
-          "status": "done",
-          "completed_at": "2025-09-27T09:48:58.956Z"
-        },
-        {
-          "id": "M1.6",
-          "name": "Build the core pipeline graph",
-          "dependencies": [
-            "M1.2",
-            "M1.4",
-            "M1.5"
-          ],
-          "definition_of_done": "The nodes are connected in `eassistant/graph/builder.py` to form the complete text-to-draft pipeline.",
-          "status": "done",
-          "completed_at": "2025-09-27T09:56:26.377Z"
-        },
-        {
-          "id": "M1.7",
-          "name": "Write integration test for core pipeline",
-          "dependencies": [
-            "M1.6"
-          ],
-          "definition_of_done": "A pytest test exists that runs the entire M1 graph with a mocked LLM service to verify the end-to-end logic.",
-          "status": "done",
-          "completed_at": "2025-09-27T10:11:16.031Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M2",
       "name": "Milestone 2: Features & UX",
-      "dependencies": [
-        "M1"
-      ],
-      "definition_of_done": "PDF parsing, draft refinement, and multi-turn conversation are all functional and covered by integration tests.",
-      "tasks": [
-        {
-          "id": "M2.1",
-          "name": "Implement PDF parsing utility",
-          "dependencies": [],
-          "definition_of_done": "A function in `eassistant/utils/files.py` can extract text from a PDF file path, with an accompanying unit test.",
-          "status": "done",
-          "completed_at": "2025-09-27T11:06:31.147Z"
-        },
-        {
-          "id": "M2.2",
-          "name": "Enhance `parse_input` node to handle file paths",
-          "dependencies": [
-            "M1.2",
-            "M2.1"
-          ],
-          "definition_of_done": "The node can differentiate between raw text and a file path, using the PDF utility when needed.",
-          "status": "done",
-          "completed_at": "2025-09-27T11:15:00.420Z"
-        },
-        {
-          "id": "M2.3",
-          "name": "Implement `refine_draft` node",
-          "dependencies": [
-            "M1.1",
-            "M1.3"
-          ],
-          "definition_of_done": "The node takes `user_feedback` and the latest draft to generate a new version.",
-          "status": "done",
-          "completed_at": "2025-09-27T12:27:44.086Z"
-        },
-        {
-          "id": "M2.4",
-          "name": "Add conditional logic for refinement in the graph",
-          "dependencies": [
-            "M1.6",
-            "M2.3"
-          ],
-          "definition_of_done": "The graph can now route user input to the `refine_draft` node or start a new email.",
-          "status": "cancelled",
-          "reason": "Superseded by the new context-aware routing architecture (ADR-001), which provides a more robust and flexible solution."
-        },
-        {
-          "id": "M2.5",
-          "name": "Manage session history",
-          "dependencies": [
-            "M1.1"
-          ],
-          "definition_of_done": "The state correctly handles multiple emails within a single run of the CLI application.",
-          "status": "done",
-          "completed_at": "2025-09-27T12:36:15.510Z"
-        },
-        {
-          "id": "M2.6",
-          "name": "Write integration tests for new features",
-          "dependencies": [
-            "M2.2",
-            "M2.4"
-          ],
-          "definition_of_done": "Integration tests are added to verify the file parsing and draft refinement pathways in the graph.",
-          "status": "done",
-          "completed_at": "2025-09-27T12:54:01.464Z"
-        },
-        {
-          "id": "M2.7",
-          "name": "Display extracted info to user",
-          "dependencies": [
-            "M1.4"
-          ],
-          "definition_of_done": "After the `extract_and_summarize` node runs, the extracted `key_info` and `summary` are printed to the console for the user to see.",
-          "status": "done",
-          "completed_at": "2025-09-29T09:04:51.076Z"
-        },
-        {
-          "id": "M2.8",
-          "name": "Enhance `GraphState` for Context-Aware Routing",
-          "dependencies": [
-            "M1.1"
-          ],
-          "definition_of_done": "The `GraphState` in `eassistant/graph/state.py` is updated to include the new `conversation_summary` field.",
-          "status": "done",
-          "completed_at": "2025-09-29T12:29:00.551Z"
-        },
-        {
-          "id": "M2.9",
-          "name": "Implement `handle_idle_chat` Node",
-          "dependencies": [
-            "M1.1"
-          ],
-          "definition_of_done": "A new `handle_idle_chat` node is created in `eassistant/graph/nodes.py` that provides a simple, conversational response.",
-          "status": "done",
-          "completed_at": "2025-09-29T12:32:24.524Z"
-        },
-        {
-          "id": "M2.10",
-          "name": "Implement Context-Aware `route_action` Node",
-          "dependencies": [
-            "M2.8",
-            "M1.3"
-          ],
-          "definition_of_done": "The `route_user_intent` node is replaced with a `route_action` node that dynamically constructs a rich context summary and uses an LLM to classify the user's intent based on the current state.",
-          "status": "done",
-          "completed_at": "2025-09-29T12:38:28.680Z"
-        },
-        {
-          "id": "M2.11",
-          "name": "Update Graph Builder with New Routing Logic",
-          "dependencies": [
-            "M2.9",
-            "M2.10"
-          ],
-          "definition_of_done": "The `eassistant/graph/builder.py` is updated to use `route_action` as the entry point and correctly routes to all nodes, including `handle_idle_chat`.",
-          "status": "done",
-          "completed_at": "2025-09-29T12:43:00.995Z"
-        },
-        {
-          "id": "M2.12",
-          "name": "Update Integration Tests for New Routing",
-          "dependencies": [
-            "M2.11",
-            "M2.6"
-          ],
-          "definition_of_done": "Existing integration tests are updated, and new tests are added to verify the context-aware routing logic for various conversational scenarios (e.g., idle chat, starting a new email mid-conversation).",
-          "status": "done",
-          "completed_at": "2025-09-29T12:52:41.903Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M3",
       "name": "Milestone 3: Polishing & Testing",
-      "dependencies": [
-        "M2"
-      ],
-      "definition_of_done": "The application is robust, with proper storage, error handling, and sufficient test coverage.",
-      "tasks": [
-        {
-          "id": "M3.1",
-          "name": "Implement Storage service (local file)",
-          "dependencies": [],
-          "definition_of_done": "A service in `eassistant/services/storage.py` can save a string to a local file.",
-          "status": "done",
-          "completed_at": "2025-09-27T13:09:49.375Z"
-        },
-        {
-          "id": "M3.2",
-          "name": "Implement Storage service (S3)",
-          "dependencies": [
-            "M3.1"
-          ],
-          "definition_of_done": "The storage service can optionally upload a file to a user-provided S3 bucket.",
-          "status": "done",
-          "completed_at": "2025-09-27T13:15:23.716Z"
-        },
-        {
-          "id": "M3.3",
-          "name": "Implement `save_draft` node",
-          "dependencies": [
-            "M1.1",
-            "M3.1"
-          ],
-          "definition_of_done": "A node is created that uses the storage service to save the latest draft.",
-          "status": "done",
-          "completed_at": "2025-09-27T13:32:57.800Z"
-        },
-        {
-          "id": "M3.4",
-          "name": "Implement `handle_error` node and graph integration",
-          "dependencies": [
-            "M1.6"
-          ],
-          "definition_of_done": "The graph can catch exceptions from any node and route to a node that prints a user-friendly error message.",
-          "status": "done",
-          "completed_at": "2025-09-27T13:40:43.742Z"
-        },
-        {
-          "id": "M3.5",
-          "name": "Write comprehensive unit tests for nodes and services",
-          "dependencies": [
-            "M1.7",
-            "M2.6",
-            "M2.10",
-            "M2.9"
-          ],
-          "definition_of_done": "Key business logic in all nodes and services has corresponding pytest unit tests.",
-          "status": "done",
-          "completed_at": "2025-09-29T12:57:52.569Z"
-        },
-        {
-          "id": "M3.6",
-          "name": "Expand integration tests for edge cases",
-          "dependencies": [
-            "M1.7",
-            "M2.6",
-            "M2.11"
-          ],
-          "definition_of_done": "Existing integration tests are expanded to cover error handling and other edge cases.",
-          "status": "done",
-          "completed_at": "2025-09-29T13:08:17.788Z"
-        },
-        {
-          "id": "M3.7",
-          "name": "Achieve >80% test coverage",
-          "dependencies": [
-            "M3.5",
-            "M3.6"
-          ],
-          "definition_of_done": "`pytest --cov` reports coverage of 80% or higher.",
-          "status": "done",
-          "completed_at": "2025-09-29T13:12:12.202Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M4",
       "name": "Milestone 4: Feature Enhancements",
-      "dependencies": [
-        "M3"
-      ],
-      "definition_of_done": "New features for project status reporting, tone selection, saving drafts, and a direct CLI entrypoint are implemented and tested.",
-      "tasks": [
-        {
-          "id": "M4.1",
-          "name": "Process Project_Status_Summary.md",
-          "dependencies": [],
-          "definition_of_done": "The Project_Status_Summary.md document is read and its contents are processed.",
-          "status": "done",
-          "completed_at": "2025-09-29T09:06:50.854Z"
-        },
-        {
-          "id": "M4.2",
-          "name": "Extract and print key info and summary from status doc",
-          "dependencies": [
-            "M4.1"
-          ],
-          "definition_of_done": "Key information and a summary are extracted from the status document and printed to the console.",
-          "status": "done",
-          "completed_at": "2025-09-29T09:17:45.000Z"
-        },
-        {
-          "id": "M4.3",
-          "name": "Debug and Fix Existing Tests",
-          "dependencies": [
-            "M3.7",
-            "M2.12"
-          ],
-          "definition_of_done": "All existing tests in the suite pass reliably. Any and all intermittent failures are investigated and permanently resolved.",
-          "status": "done",
-          "completed_at": "2025-09-29T13:15:02.202Z"
-        },
-        {
-          "id": "M4.4",
-          "name": "Implement 'ask_for_tone' node",
-          "dependencies": [],
-          "definition_of_done": "A new 'ask_for_tone' node is added to the graph. The graph flow is updated to ask the user for a desired tone (e.g., formal, casual) and incorporates this into the draft generation prompt.",
-          "status": "done",
-          "completed_at": "2025-09-29T09:42:15.150Z"
-        },
-        {
-          "id": "M4.5",
-          "name": "Implement 'save' command",
-          "dependencies": [
-            "M2.11"
-          ],
-          "definition_of_done": "A 'save' command is added to the CLI. When invoked, it uses the Storage service to save the latest draft to a local file.",
-          "status": "done",
-          "completed_at": "2025-09-29T13:20:14.631Z"
-        },
-        {
-          "id": "M4.6",
-          "name": "Implement 'eassistant' CLI entrypoint",
-          "dependencies": [],
-          "definition_of_done": "A console script entrypoint 'eassistant' is configured in pyproject.toml, allowing the application to be run directly from the command line.",
-          "status": "done",
-          "completed_at": "2025-09-29T10:02:04.795Z"
-        },
-        {
-          "id": "M4.7",
-          "name": "Allow user to request key info and summary display",
-          "dependencies": [
-            "M1.4",
-            "M2.11"
-          ],
-          "definition_of_done": "A user command (e.g., 'show info') is implemented that, when called after the initial extraction, displays the current key_info and summary. The key_info extraction logic is updated to include sender/receiver contact details (email/phone) if available, not just names.",
-          "status": "done",
-          "completed_at": "2025-09-29T13:36:30.436Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M5",
       "name": "Milestone 5: Conversational File Loading",
-      "dependencies": [
-        "M4"
-      ],
-      "definition_of_done": "The application can correctly interpret a user's request to load a file conversationally.",
-      "tasks": [
-        {
-          "id": "M5.1",
-          "name": "Enhance 'route_action' prompt to recognize file load commands",
-          "dependencies": [
-            "M2.10"
-          ],
-          "definition_of_done": "The prompt for the 'route_action' node is updated with examples and instructions to correctly classify inputs like 'load example.pdf' as 'process_new_email'.",
-          "status": "done",
-          "completed_at": "2025-09-29T14:11:47.796Z"
-        },
-        {
-          "id": "M5.2",
-          "name": "Update 'parse_input' to extract filename from load command",
-          "dependencies": [
-            "M5.1",
-            "M2.2"
-          ],
-          "definition_of_done": "The 'parse_input' node is modified to correctly extract the filename from the full user input (e.g., get 'example.pdf' from 'load example.pdf').",
-          "status": "done",
-          "completed_at": "2025-09-29T14:16:29.145Z"
-        },
-        {
-          "id": "M5.3",
-          "name": "Add integration test for file loading intent",
-          "dependencies": [
-            "M5.2"
-          ],
-          "definition_of_done": "An integration test is added to verify that providing an input like 'load example.pdf' runs the full graph and correctly loads the file content.",
-          "status": "done",
-          "completed_at": "2025-09-29T14:21:52.314Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M6",
       "name": "Milestone 6: Finalization & Verification",
-      "dependencies": [
-        "M5"
-      ],
-      "definition_of_done": "Test coverage is at 100% and all tests are passing.",
-      "tasks": [
-        {
-          "id": "M6.1",
-          "name": "Increase test coverage to >95%",
-          "dependencies": [
-            "M3.7"
-          ],
-          "definition_of_done": "`pytest --cov` reports coverage of 95% or higher.",
-          "status": "done",
-          "completed_at": "2025-09-29T13:43:04.678Z"
-        },
-        {
-          "id": "M6.2",
-          "name": "Ensure 100% of tests are passing",
-          "dependencies": [
-            "M6.1",
-            "M7"
-          ],
-          "definition_of_done": "The entire test suite runs successfully with no failures.",
-          "status": "done",
-          "completed_at": "2025-09-29T15:19:33.293Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M7",
       "name": "Milestone 7: Bugfix - Conversational Cloud Save",
-      "dependencies": [
-        "M3"
-      ],
-      "definition_of_done": "Conversational commands like 'save to cloud' are correctly interpreted by the LLM router, and the draft is saved to S3.",
-      "tasks": [
-        {
-          "id": "M7.1",
-          "name": "Enhance 'route_action' to extract storage target",
-          "dependencies": [
-            "M2.10"
-          ],
-          "definition_of_done": "The LLM prompt for the 'route_action' node is updated with examples to extract a `save_target` (e.g., 'local', 's3') from conversational input. The Pydantic model used for extraction is updated with an optional `save_target` field.",
-          "status": "done",
-          "completed_at": "2025-09-29T14:41:31.051Z"
-        },
-        {
-          "id": "M7.2",
-          "name": "Update GraphState to include save_target",
-          "dependencies": [
-            "M1.1",
-            "M7.1"
-          ],
-          "definition_of_done": "The GraphState class in `eassistant/graph/state.py` is updated with a new optional `save_target: str` field. The `route_action` node correctly populates this field in the state.",
-          "status": "done",
-          "completed_at": "2025-09-29T14:45:21.460Z"
-        },
-        {
-          "id": "M7.3",
-          "name": "Update StorageService and 'save_draft' node",
-          "dependencies": [
-            "M3.3",
-            "M7.2"
-          ],
-          "definition_of_done": "The `StorageService.save()` method is updated to accept an optional `target` parameter. The `save_draft` node is modified to read the `save_target` from the state and pass it to the `StorageService`.",
-          "status": "done",
-          "completed_at": "2025-09-29T14:52:03.184Z"
-        },
-        {
-          "id": "M7.4",
-          "name": "Add integration test for conversational cloud save",
-          "dependencies": [
-            "M7.3"
-          ],
-          "definition_of_done": "An integration test is added that simulates a conversational command like 'save this to the cloud' and verifies (with a mock) that the StorageService was called with the 's3' target.",
-          "status": "done",
-          "completed_at": "2025-09-29T14:56:20.976Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M8",
       "name": "Milestone 8: Submission Preparation",
-      "dependencies": [
-        "M6",
-        "M7"
-      ],
-      "definition_of_done": "All final documentation and packaging tasks are complete, and the project is ready for submission.",
-      "tasks": [
-        {
-          "id": "M8.1",
-          "name": "Generate standalone architecture diagram",
-          "dependencies": [],
-          "definition_of_done": "An SVG or PNG of the architecture diagram is generated from the Mermaid code in the architectural plan and saved as `docs/architecture.svg`.",
-          "status": "done",
-          "completed_at": "2025-09-30T08:46:27.751Z"
-        },
-        {
-          "id": "M8.2",
-          "name": "Add Technology Rationale to Architectural Plan",
-          "dependencies": [],
-          "definition_of_done": "A new section is added to `docs/Architectural_Plan.md` explaining the reasoning for choosing key technologies like AWS Bedrock, LangGraph.",
-          "status": "done",
-          "completed_at": "2025-09-30T08:48:56.326Z"
-        },
-        {
-          "id": "M8.3",
-          "name": "Create comprehensive README.md",
-          "dependencies": [
-            "M0.6"
-          ],
-          "definition_of_done": "The `README.md` is updated to include a project overview, features, setup instructions, and clear guidance on how to configure the `config/default.yaml` file for AWS credentials and other settings.",
-          "status": "done",
-          "completed_at": "2025-09-30T08:55:45.683Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M9",
       "name": "Milestone 9: Web Application & API",
-      "dependencies": [
-        "M8"
-      ],
-      "definition_of_done": "The FastAPI API and Django UI are containerized, deployed to Google Cloud Run, and accessible via public URLs.",
-      "tasks": [
-        {
-          "id": "M9.1",
-          "name": "API: Initial FastAPI Setup",
-          "dependencies": [],
-          "definition_of_done": "The folder structure `services/api` is created with a basic `main.py` containing a `/healthz` endpoint and a `requirements.txt` file.",
-          "status": "done",
-          "completed_at": "2025-10-21T16:24:40.790Z"
-        },
-        {
-          "id": "M9.2",
-          "name": "API: Create Dockerfile",
-          "dependencies": [
-            "M9.1"
-          ],
-          "definition_of_done": "A `services/api/Dockerfile` exists and can be used to build a container image of the FastAPI application.",
-          "status": "done",
-          "completed_at": "2025-10-21T16:46:29.140Z"
-        },
-        {
-          "id": "M9.3",
-          "name": "API: Integrate LangGraph Assistant",
-          "dependencies": [
-            "M9.1"
-          ],
-          "definition_of_done": "The FastAPI application can import and invoke the core LangGraph assistant, exposed via a new API endpoint.",
-          "status": "done",
-          "completed_at": "2025-10-21T16:54:03.428Z"
-        },
-        {
-          "id": "M9.4",
-          "name": "UI: Initial Django Setup",
-          "dependencies": [],
-          "definition_of_done": "The folder structure `services/ui` is created with a new Django project, Whitenoise is configured for static files, and a `requirements.txt` file is present.",
-          "status": "done",
-          "completed_at": "2025-10-22T10:10:48.438Z"
-        },
-        {
-          "id": "M9.5",
-          "name": "UI: Create Dockerfile",
-          "dependencies": [
-            "M9.4"
-          ],
-          "definition_of_done": "A `services/ui/Dockerfile` exists and can be used to build a container image of the Django application.",
-          "status": "done",
-          "completed_at": "2025-10-22T10:20:32.725Z"
-        },
-        {
-          "id": "M9.6",
-          "name": "UI: Consume API",
-          "dependencies": [
-            "M9.3",
-            "M9.4"
-          ],
-          "definition_of_done": "The Django UI has a basic interface that can send requests to the FastAPI service and display the conversational response.",
-          "status": "done",
-          "completed_at": "2025-10-23T10:00:00.189Z"
-        },
-        {
-          "id": "M9.7",
-          "name": "Deployment: Configure for Cloud Run",
-          "dependencies": [
-            "M9.2",
-            "M9.5"
-          ],
-          "definition_of_done": "Configuration files (e.g., `cloudbuild.yaml`) are created for deploying both services to Google Cloud Run. Documentation for required environment variables and secrets is added to the README.",
-          "status": "done",
-          "completed_at": "2025-10-23T10:18:25.228Z"
-        },
-        {
-          "id": "M9.8",
-          "name": "CI: Update Pipeline and Add Smoke Tests",
-          "dependencies": [
-            "M9.7"
-          ],
-          "definition_of_done": "The CI pipeline is updated to build, test, and deploy the new services. Basic smoke tests are added to verify the health of the deployed API and UI.",
-          "status": "done",
-          "completed_at": "2025-10-23T10:23:24.286Z"
-        }
-      ]
+      "status": "done"
     },
     {
       "id": "M10",
       "name": "Milestone 10: UI/API Integration & Testing",
+      "status": "done"
+    },
+    {
+      "id": "M11",
+      "name": "Milestone 11: Refactor - Database & State Persistence",
       "dependencies": [
-        "M9"
+        "M10"
       ],
-      "definition_of_done": "The UI and API services can communicate reliably, and this is verified by automated integration tests.",
+      "definition_of_done": "The core database layer is established, and conversational state is persisted between requests.",
+      "status": "todo",
       "tasks": [
         {
-          "id": "M10.1",
-          "name": "Fix UI/API Communication Mismatches",
-          "dependencies": [
-            "M9.6"
+          "id": "M11.1",
+          "desc": "DB: Define Schema & Service",
+          "deps": [],
+          "dod": [
+            "A `DatabaseService` module is created.",
+            "SQLAlchemy Core is used for schema definition.",
+            "Tables for `users`, `sessions`, `graph_state`, and `messages` are defined.",
+            "The service works with a local SQLite database."
           ],
-          "definition_of_done": "The API endpoint path, request payload key, and default port are aligned between the Django UI and the FastAPI API.",
-          "status": "done",
-          "completed_at": "2025-10-23T12:41:40.017Z"
+          "status": "todo"
         },
         {
-          "id": "M10.2",
-          "name": "Implement UI/API Integration Test",
-          "dependencies": [
-            "M10.1"
+          "id": "M11.2",
+          "desc": "API: Integrate State Management",
+          "deps": [
+            "M11.1"
           ],
-          "definition_of_done": "An automated test is created that launches both the UI and API services and simulates a user sending a message to verify the end-to-end communication flow.",
-          "status": "pending"
+          "dod": [
+            "FastAPI endpoint loads/creates a session on each request.",
+            "The latest `graph_state` is retrieved from the database before running the graph.",
+            "The updated `graph_state` and new messages are saved to the database after the graph runs."
+          ],
+          "status": "todo"
+        },
+        {
+          "id": "M11.3",
+          "desc": "API: Basic User/Session Handling",
+          "deps": [
+            "M11.2"
+          ],
+          "dod": [
+            "A mechanism exists to identify a user (e.g., from a static header).",
+            "The user is associated with the correct session in the database."
+          ],
+          "status": "todo"
+        },
+        {
+          "id": "M11.4",
+          "desc": "Tests: Update Integration Tests for DB Persistence",
+          "deps": [
+            "M11.3"
+          ],
+          "dod": [
+            "Integration tests are refactored to use a test database (e.g., in-memory SQLite).",
+            "Tests now set up state in the DB, run the API, and assert on the final DB state."
+          ],
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "M12",
+      "name": "Milestone 12: Refactor - S3 Usage & Repositories",
+      "dependencies": [
+        "M11"
+      ],
+      "definition_of_done": "S3 is used strictly for artifact storage, with all metadata managed in the database.",
+      "status": "todo",
+      "tasks": [
+        {
+          "id": "M12.1",
+          "desc": "Refactor StorageService to ArtifactRepository",
+          "deps": [],
+          "dod": [
+            "The `StorageService` is renamed/refactored to `ArtifactRepository` to clarify its purpose.",
+            "All file-saving operations (e.g., `save_draft` node) use this repository."
+          ],
+          "status": "todo"
+        },
+        {
+          "id": "M12.2",
+          "desc": "DB: Link Artifacts to Database",
+          "deps": [
+            "M11.1",
+            "M12.1"
+          ],
+          "dod": [
+            "An `artifacts` table is created in the database to store metadata (path, type, session_id).",
+            "The `ArtifactRepository` writes a record to this table after successfully uploading a file to S3."
+          ],
+          "status": "todo"
+        }
+      ]
+    },
+    {
+      "id": "M13",
+      "name": "Milestone 13: Optional Enhancements",
+      "dependencies": [
+        "M12"
+      ],
+      "definition_of_done": "Value-add features leveraging the new architecture are implemented.",
+      "status": "todo",
+      "tasks": [
+        {
+          "id": "M13.1",
+          "desc": "Implement Conversation Summarization",
+          "deps": [],
+          "dod": [
+            "A `summary` field is added to the `sessions` table.",
+            "A node or background task is created to periodically summarize conversation history and update the session summary."
+          ],
+          "status": "todo"
+        },
+        {
+          "id": "M13.2",
+          "desc": "Scaffold RAG Layer (Future)",
+          "deps": [],
+          "dod": [
+            "Placeholder modules or documentation are created outlining a future RAG implementation.",
+            "No functional code is required for this task."
+          ],
+          "status": "todo"
         }
       ]
     }
